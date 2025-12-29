@@ -1,0 +1,87 @@
+@using TeacherApp.Data
+@inject ApplicationDbContext DbContext
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher App - @ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @{
+        var directorsPageInfo = DbContext.DirectorsPageInfos.FirstOrDefault();
+        var schoolName = directorsPageInfo?.SchoolName ?? "TRIO Program";
+        
+        // Check TempData first for selected batch year (from Directors page)
+        var currentBatchYear = TempData.Peek("CurrentBatchYear") as string;
+        
+        // If not set, get the most recent batch year
+        if (string.IsNullOrEmpty(currentBatchYear) || currentBatchYear == "Creating New...")
+        {
+            currentBatchYear = DbContext.DirectorsPageInfos
+                .Where(d => !string.IsNullOrEmpty(d.BatchYear))
+                .OrderByDescending(d => d.BatchYear)
+                .Select(d => d.BatchYear)
+                .FirstOrDefault();
+        }
+    }
+    <nav class="navbar navbar-expand-lg mb-3 app-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">@schoolName - TRIO SSS</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Students">Students</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Tutors">Tutors</a></li>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Director"))
+                        {
+                            <li class="nav-item"><a class="nav-link" href="/Admins">Admins</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Directors">Directors</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Permissions">Permissions</a></li>
+                            <li class="nav-item"><a class="nav-link" href="/Reports">Reports</a></li>
+                        }
+                    }
+                </ul>
+                <ul class="navbar-nav">
+                    @if (!string.IsNullOrEmpty(currentBatchYear))
+                    {
+                        <li class="nav-item d-flex align-items-center me-3">
+                            <span class="badge bg-warning text-dark fs-6 px-3 py-2 rounded-pill shadow-sm" style="border: 2px solid #ffc107;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check me-1" viewBox="0 0 16 16">
+                                    <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0"/>
+                                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                                </svg>
+                                <strong>Batch Year: @currentBatchYear</strong>
+                            </span>
+                        </li>
+                    }
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        <li class="nav-item"><span class="nav-link">@User.Identity.Name</span></li>
+                        <li class="nav-item">
+                            <form method="post" action="/Account/Logout" class="d-inline">
+                                <button type="submit" class="btn btn-link nav-link">Logout</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item"><a class="nav-link" href="/Account/Register">Register</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/Account/Login">Login</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        @RenderBody()
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

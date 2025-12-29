@@ -1,0 +1,110 @@
+@{
+    ViewData["Title"] = "Setup Complete";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TeacherApp - Setup Complete</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .complete-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .complete-title {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        .complete-message {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .btn-continue {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 40px;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: transform 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-continue:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .next-steps {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: left;
+            margin-top: 30px;
+        }
+        .next-steps h5 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .next-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            color: #666;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="complete-container">
+        <div class="success-icon">✓</div>
+        <h1 class="complete-title">Setup Complete!</h1>
+        
+        <p class="complete-message">
+            Your TeacherApp instance is now ready to use.<br>
+            <strong>Your admin account has been created successfully.</strong>
+        </p>
+
+        <a href="/" class="btn btn-continue">Go to Dashboard</a>
+
+        <div class="next-steps">
+            <h5>Next Steps:</h5>
+            <ol>
+                <li>Log in with your admin credentials</li>
+                <li>Invite other teachers to the system</li>
+                <li>Add your students and classes</li>
+                <li>Configure any additional settings</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

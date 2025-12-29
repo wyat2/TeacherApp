@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container-fluid px-0">
+    <h2 class="mb-4">Generate Reports</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Filter Options</h4>
+        </div>
+        <div class="card-body">
+            <form id="reportForm" asp-action="GenerateReport" method="post">
+                <div class="row g-3">
+                    <!-- Name Filters -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Filter by first name" />
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Filter by last name" />
+                    </div>
+
+                    <!-- Eligibility -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="eligibility" class="form-label">Eligibility</label>
+                        <select class="form-select" id="eligibility" name="eligibility">
+                            <option value="">All</option>
+                            <option value="First Generation">First Generation</option>
+                            <option value="Low Income">Low Income</option>
+                            <option value="Disability">Disability</option>
+                        </select>
+                    </div>
+
+                    <!-- Ethnicity -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="ethnicity" class="form-label">Ethnicity</label>
+                        <select class="form-select" id="ethnicity" name="ethnicity">
+                            <option value="">All</option>
+                            <option value="Hispanic/Latino">Hispanic/Latino</option>
+                            <option value="White">White</option>
+                            <option value="Black or African American">Black or African American</option>
+                            <option value="Asian">Asian</option>
+                            <option value="American Indian">American Indian</option>
+                            <option value="Native Hawaiian/Pacific Islander">Native Hawaiian/Pacific Islander</option>
+                        </select>
+                    </div>
+
+                    <!-- Gender -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="gender" class="form-label">Gender</label>
+                        <select class="form-select" id="gender" name="gender">
+                            <option value="">All</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                            <option value="Prefer not to say">Prefer not to say</option>
+                        </select>
+                    </div>
+
+                    <!-- Batch Year -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="batchYear" class="form-label">Batch Year</label>
+                        <select class="form-select" id="batchYear" name="batchYear">
+                            <option value="">All</option>
+                            @if (ViewBag.AvailableBatchYears != null)
+                            {
+                                foreach (var year in (List<string>)ViewBag.AvailableBatchYears)
+                                {
+                                    var isSelected = year == ViewBag.CurrentBatchYear as string;
+                                    <option value="@year" selected="@isSelected">@year</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Enrollment Date Range -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="enrollmentDateFrom" class="form-label">Enrollment Date From</label>
+                        <input type="date" class="form-control" id="enrollmentDateFrom" name="enrollmentDateFrom" />
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <label for="enrollmentDateTo" class="form-label">Enrollment Date To</label>
+                        <input type="date" class="form-control" id="enrollmentDateTo" name="enrollmentDateTo" />
+                    </div>
+                </div>
+
+                <hr class="my-4" />
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <h5>Export Format</h5>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="format" id="formatCSV" value="csv" checked />
+                            <label class="form-check-label" for="formatCSV">
+                                CSV (Comma-Separated Values)
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="format" id="formatPDF" value="pdf" />
+                            <label class="form-check-label" for="formatPDF">
+                                PDF (Portable Document Format)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
+                            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
+                            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+                        </svg>
+                        Generate Report
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                        </svg>
+                        Reset Filters
+                    </button>
+                </div>
+            </form>
+            
+            <div class="mt-3 pt-3 border-top">
+                <form asp-action="GenerateAnnualPerformanceReport" method="post">
+                    <button type="submit" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
+                            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z"/>
+                        </svg>
+                        Annual Performance Report
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Report Information</h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-2"><strong>Available Data Fields:</strong></p>
+            <ul class="mb-0">
+                <li>Case Number, Name (First, Middle, Last)</li>
+                <li>Contact Information (Email, Phone)</li>
+                <li>Demographics (Date of Birth, Gender, Ethnicity, Hispanic/Latino)</li>
+                <li>Program Information (Eligibility, Enrollment Date, Expected Graduation)</li>
+                <li>Academic Information (GPA, Total Credits, Credits This Semester)</li>
+                <li>Classes (Number of enrolled classes)</li>
+                <li>Created By (User who added the student)</li>
+            </ul>
+            <p class="mt-3 mb-0"><strong>Note:</strong> CSV format includes all fields and is suitable for Excel. PDF format includes summary information in a formatted table.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .card-header h4,
+    .card-header h5 {
+        font-size: 1.25rem;
+    }
+</style>
+
+<script>
+    function resetForm() {
+        document.getElementById('reportForm').reset();
+    }
+</script>

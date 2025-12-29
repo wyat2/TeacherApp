@@ -1,0 +1,248 @@
+@model IEnumerable<TeacherApp.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Directors";
+}
+
+<h2>Directors</h2>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Batch Year Selection -->
+@{
+    var info = (TeacherApp.Models.DirectorsPageInfo)ViewBag.DirectorsPageInfo;
+    var availableBatchYears = (List<string>)ViewBag.AvailableBatchYears;
+    var selectedBatchYear = ViewBag.SelectedBatchYear as string;
+}
+
+<div class="card mb-3 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <strong class="me-2">Current Batch Year:</strong>
+            @if (!string.IsNullOrEmpty(selectedBatchYear))
+            {
+                <span class="badge bg-primary fs-6">@selectedBatchYear</span>
+            }
+            else
+            {
+                <span class="text-muted">None selected - Create a new batch year to get started</span>
+            }
+            
+            @if (availableBatchYears != null && availableBatchYears.Any())
+            {
+                <div class="dropdown ms-auto">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="batchYearDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
+                            <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2M1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857z"/>
+                            <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2m3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+                        </svg>
+                        Select Previous Year
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="batchYearDropdown">
+                        @foreach (var year in availableBatchYears)
+                        {
+                            <li>
+                                <a class="dropdown-item @(year == selectedBatchYear ? "active" : "")" 
+                                   href="@Url.Action("Index", new { selectedBatchYear = year })">
+                                    @year
+                                    @if (year == selectedBatchYear)
+                                    {
+                                        <span class="badge bg-success ms-2">Current</span>
+                                    }
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+            
+            <form asp-action="CreateNewBatchYear" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                    </svg>
+                    Create New Batch Year
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Secondary navigation for Directors page -->
+
+<ul class="nav nav-tabs mb-3" id="directorsTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="school-tab" data-bs-toggle="tab" data-bs-target="#school" type="button" role="tab">School info</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="director-tab" data-bs-toggle="tab" data-bs-target="#director" type="button" role="tab">Director Info</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="grant-tab" data-bs-toggle="tab" data-bs-target="#grant" type="button" role="tab">Grant Info</button>
+    </li>
+</ul>
+
+<div class="tab-content mb-4">
+    <div class="tab-pane fade show active" id="school" role="tabpanel">
+        <form method="post" asp-action="SaveSchoolInfo">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
+            <div class="mb-3">
+                <label class="form-label">School Name</label>
+                <input type="text" name="schoolName" class="form-control" value="@info.SchoolName" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address</label>
+                <input type="text" name="address" class="form-control" value="@info.Address" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Telephone number</label>
+                <input type="text" name="schoolPhone" class="form-control" value="@info.SchoolPhone" />
+            </div>
+            <button class="btn btn-primary" type="submit">Save School Info</button>
+        </form>
+    </div>
+
+    <div class="tab-pane fade" id="director" role="tabpanel">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.FirstName</td>
+                        <td>@u.LastName</td>
+                        <td>@u.Email</td>
+                        <td>@u.PhoneNumber</td>
+                        <td>
+                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@u.Id">Details</a>
+                            @if (ViewBag.CanEdit == true)
+                            {
+                                <a class="btn btn-sm btn-primary ms-1" asp-action="Edit" asp-route-id="@u.Id">Edit</a>
+                            }
+                            @if (ViewBag.CanDelete == true)
+                            {
+                                <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this director?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="tab-pane fade" id="grant" role="tabpanel">
+        <form method="post" asp-action="SaveGrantInfo" id="grantInfoForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
+            <div class="mb-3">
+                <label class="form-label">Grant type</label>
+                <input type="text" name="grantType" class="form-control" value="@info.GrantType" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">PR/Award Number<sub style="color: red; font-size: 0.7em;">(1)</sub></label>
+                <input type="text" name="prAwardNumber" class="form-control" value="@info.PRAwardNumber" 
+                       pattern="[0-9]{11}" maxlength="11" inputmode="numeric"
+                       title="PR/Award Number must be exactly 11 digits" 
+                       placeholder="Enter 11-digit number" />
+                <small class="form-text text-muted">Must be exactly 11 digits. This will update all student profiles.</small>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Grant budget amount</label>
+                <input type="number" step="0.01" name="grantBudget" class="form-control" value="@(info.GrantBudget?.ToString() ?? string.Empty)" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Batch Year<sub style="color: red; font-size: 0.7em;">(2)</sub></label>
+                <input type="text" name="batchYear" id="batchYearInput" class="form-control" value="@info.BatchYear" 
+                       pattern="[0-9]{4}" maxlength="4" inputmode="numeric"
+                       title="Batch Year must be exactly 4 digits" 
+                       placeholder="Enter 4-digit year" 
+                       @(string.IsNullOrEmpty(selectedBatchYear) ? "required" : "") />
+                <small class="form-text text-muted">Must be exactly 4 digits (e.g., 2025). This will update all student profiles.</small>
+            </div>
+            <button class="btn btn-primary" type="submit">Save Grant Info</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // If creating a new batch year, ensure the form validates the batch year field
+            var isNewBatchYear = @(string.IsNullOrEmpty(selectedBatchYear) ? "true" : "false");
+            if (isNewBatchYear) {
+                // Auto-switch to Grant Info tab when creating new batch year
+                var grantTab = new bootstrap.Tab(document.getElementById('grant-tab'));
+                grantTab.show();
+                
+                // Add form validation
+                var form = document.getElementById('grantInfoForm');
+                var batchYearInput = document.getElementById('batchYearInput');
+                
+                form.addEventListener('submit', function(e) {
+                    if (!batchYearInput.value || batchYearInput.value.trim() === '') {
+                        e.preventDefault();
+                        alert('Batch Year is required when creating a new batch year. Please enter a 4-digit year or cancel by selecting a different batch year from the dropdown.');
+                        batchYearInput.focus();
+                        return false;
+                    }
+                });
+            }
+        });
+    </script>
+}
+<p><a class="btn btn-primary" href="/Directors/Create">Add Director</a></p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.FirstName</td>
+                <td>@u.LastName</td>
+                <td>@u.Email</td>
+                <td>@u.PhoneNumber</td>
+                <td>
+                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@u.Id">Details</a>
+                    @if (ViewBag.CanEdit == true)
+                    {
+                        <a class="btn btn-sm btn-primary ms-1" asp-action="Edit" asp-route-id="@u.Id">Edit</a>
+                    }
+                    @if (ViewBag.CanDelete == true)
+                    {
+                        <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this director?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

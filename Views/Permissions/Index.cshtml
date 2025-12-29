@@ -1,0 +1,39 @@
+@model IEnumerable<TeacherApp.Models.RolePermission>
+@{
+    ViewData["Title"] = "Permissions";
+}
+
+<h2>Role Permissions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Role</th>
+            <th>Can Delete Students</th>
+            <th>Can Manage Admins</th>
+            <th>Can Delete Admins</th>
+            <th>Can Edit Admins</th>
+            <th>Can Delete Directors</th>
+            <th>Can Edit Directors</th>
+            <th>Can Delete Tutors</th>
+            <th>Can Edit Tutors</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.RoleName</td>
+                <td>@(r.CanDeleteStudents ? "Yes" : "No")</td>
+                <td>@(r.CanManageAdmins ? "Yes" : "No")</td>
+                <td>@(r.CanDeleteAdmins ? "Yes" : "No")</td>
+                <td>@(r.CanEditAdmins ? "Yes" : "No")</td>
+                <td>@(r.CanDeleteDirectors ? "Yes" : "No")</td>
+                <td>@(r.CanEditDirectors ? "Yes" : "No")</td>
+                <td>@(r.CanDeleteTutors ? "Yes" : "No")</td>
+                <td>@(r.CanEditTutors ? "Yes" : "No")</td>
+                <td><a class="btn btn-sm btn-secondary" href="/Permissions/Edit?role=@Uri.EscapeDataString(r.RoleName)">Edit</a></td>
+            </tr>
+        }
+    </tbody>
+</table>

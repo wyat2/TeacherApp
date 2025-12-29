@@ -1,0 +1,174 @@
+@model TeacherApp.Models.StudentClass
+@{
+    ViewData["Title"] = "Tutoring Notes";
+}
+
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <h2 class="mb-2 mb-md-0">Tutoring Notes - @Model.ClassName</h2>
+        <a class="btn btn-secondary" asp-action="Details" asp-route-id="@Model.StudentId">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8"/>
+            </svg>
+            Back
+        </a>
+    </div>
+
+    <!-- Class Information -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Class Information</h4>
+        </div>
+        <div class="card-body">
+            <div class="row g-2">
+                <div class="col-12 col-md-6">
+                    <strong>Student:</strong> @Model.Student?.FirstName @Model.Student?.LastName
+                </div>
+                <div class="col-12 col-md-6">
+                    <strong>Instructor:</strong> @(string.IsNullOrEmpty(Model.Instructor) ? "-" : Model.Instructor)
+                </div>
+                <div class="col-12 col-md-6">
+                    <strong>Schedule:</strong> @(string.IsNullOrEmpty(Model.Schedule) ? "-" : Model.Schedule)
+                </div>
+                <div class="col-12 col-md-6">
+                    <strong>Semester:</strong> @(string.IsNullOrEmpty(Model.Semester) ? "-" : Model.Semester)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add New Note -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">Add New Tutoring Note</h4>
+        </div>
+        <div class="card-body">
+            <form id="addNoteForm">
+                <input type="hidden" id="studentClassId" value="@Model.Id" />
+                <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                        <label for="noteDate" class="form-label">Date *</label>
+                        <input type="date" class="form-control" id="noteDate" required value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                    </div>
+                    <div class="col-12 col-md-9">
+                        <label for="notes" class="form-label">Notes *</label>
+                        <textarea class="form-control" id="notes" rows="3" required placeholder="Enter tutoring notes..."></textarea>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-success">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                            </svg>
+                            Add Note
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Previous Notes -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">Previous Notes</h4>
+        </div>
+        <div class="card-body">
+            @if (Model.TutoringNotes != null && Model.TutoringNotes.Any())
+            {
+                <div class="list-group">
+                    @foreach (var note in Model.TutoringNotes.OrderByDescending(n => n.NoteDate).ThenByDescending(n => n.CreatedAt))
+                    {
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h5 class="mb-1">@note.NoteDate.ToString("MMMM dd, yyyy")</h5>
+                                    <small class="text-muted">
+                                        Created by: @(note.CreatedByUser?.Email ?? "Unknown") | 
+                                        @note.CreatedAt.ToString("MMM dd, yyyy h:mm tt")
+                                    </small>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteNote(@note.Id)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <p class="mb-0">@note.Notes</p>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mb-0">
+                    No tutoring notes have been added yet.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    // Add note form submission
+    document.getElementById('addNoteForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const studentClassId = document.getElementById('studentClassId').value;
+        const noteDate = document.getElementById('noteDate').value;
+        const notes = document.getElementById('notes').value;
+        
+        if (!notes.trim()) {
+            alert('Please enter notes');
+            return;
+        }
+        
+        const data = {
+            StudentClassId: parseInt(studentClassId),
+            NoteDate: noteDate,
+            Notes: notes
+        };
+        
+        fetch('/Students/AddTutoringNote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Error adding note: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding note');
+        });
+    });
+    
+    // Delete note
+    function deleteNote(noteId) {
+        if (confirm('Are you sure you want to delete this note?')) {
+            fetch('/Students/DeleteTutoringNote/' + noteId, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error deleting note: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error deleting note');
+            });
+        }
+    }
+</script>

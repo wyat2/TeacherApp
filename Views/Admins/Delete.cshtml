@@ -1,0 +1,13 @@
+@model TeacherApp.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Delete Admin";
+}
+
+<h2>Delete Admin</h2>
+<form asp-action="Delete" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+    <p>Are you sure you want to delete <strong>@(Model.FirstName) @(Model.LastName)</strong>?</p>
+    <button type="submit" class="btn btn-danger">Delete</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancel</a>
+</form>

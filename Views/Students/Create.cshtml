@@ -1,0 +1,191 @@
+@model TeacherApp.Models.Student
+@{
+    ViewData["Title"] = "Add Student";
+}
+
+<h2>Add Student</h2>
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label class="form-label">Profile Picture</label>
+        <input type="file" name="profilePicture" accept="image/*" class="form-control" />
+        <small class="form-text text-muted">Upload a profile picture (will be automatically resized to 200x200px)</small>
+    </div>
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="MiddleInitial" class="form-label"></label>
+        <input asp-for="MiddleInitial" class="form-control" maxlength="1" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="DateOfBirth" class="form-label"></label>
+        <input asp-for="DateOfBirth" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Gender" class="form-label"></label>
+        <select asp-for="Gender" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="ClassName" class="form-label"></label>
+        <input asp-for="ClassName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Grade" class="form-label"></label>
+        <input asp-for="Grade" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Ethnicity (select all that apply)</label>
+        <input type="hidden" name="Ethnicity" id="ethnicityHidden" value="@Model?.Ethnicity" />
+        <div class="row g-2">
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="Hispanic/Latino" id="eth1"><label class="form-check-label" for="eth1">Hispanic/Latino</label></div></div>
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="White" id="eth2"><label class="form-check-label" for="eth2">White</label></div></div>
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="Black or African American" id="eth3"><label class="form-check-label" for="eth3">Black/African American</label></div></div>
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="Asian" id="eth4"><label class="form-check-label" for="eth4">Asian</label></div></div>
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="American Indian" id="eth5"><label class="form-check-label" for="eth5">American Indian</label></div></div>
+            <div class="col-6 col-md-4"><div class="form-check form-check-inline"><input class="form-check-input ethnicity-check" type="checkbox" value="Native Hawaiian/Pacific Islander" id="eth7"><label class="form-check-label" for="eth7">Hawaiian/Pacific Isl.</label></div></div>
+        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const checkboxes = document.querySelectorAll('.ethnicity-check');
+                const hidden = document.getElementById('ethnicityHidden');
+                const currentValue = hidden.value || '';
+                const values = currentValue.split(',').map(v => v.trim()).filter(v => v);
+                checkboxes.forEach(cb => {
+                    if (values.includes(cb.value)) cb.checked = true;
+                    cb.addEventListener('change', function() {
+                        const selected = Array.from(document.querySelectorAll('.ethnicity-check:checked')).map(c => c.value);
+                        hidden.value = selected.join(', ');
+                    });
+                });
+            });
+        </script>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+    </div>
+
+    <h4 class="mt-4">Program Information</h4>
+    <div class="mb-3">
+        <label asp-for="Eligibility" class="form-label"></label>
+        <input asp-for="Eligibility" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="StudentDisability" class="form-label"></label>
+        <select asp-for="StudentDisability" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label asp-for="AcademicNeed" class="form-label"></label>
+        <input asp-for="AcademicNeed" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="FirstEnrollmentDate" class="form-label"></label>
+        <input asp-for="FirstEnrollmentDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="DateOfFirstProjectService" class="form-label"></label>
+        <input asp-for="DateOfFirstProjectService" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="StudentCohortYear" class="form-label"></label>
+        <input asp-for="StudentCohortYear" class="form-control" />
+    </div>
+
+    <h4 class="mt-4">Academic Information</h4>
+    <div class="mb-3">
+        <label asp-for="CollegeGradeLevelEntryIntoProject" class="form-label"></label>
+        <input asp-for="CollegeGradeLevelEntryIntoProject" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-label"></label>
+        <input asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-label"></label>
+        <input asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-label"></label>
+        <input asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-label"></label>
+        <input asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-label"></label>
+        <input asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="AcademicStanding" class="form-label"></label>
+        <input asp-for="AcademicStanding" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="CumulativeGPA" class="form-label"></label>
+        <input asp-for="CumulativeGPA" type="number" step="0.01" min="0" max="4.0" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-label"></label>
+        <input asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-control" />
+    </div>
+
+    <h4 class="mt-4">Completion & Withdrawal</h4>
+    <div class="mb-3">
+        <label asp-for="DateOfLastProjectService" class="form-label"></label>
+        <input asp-for="DateOfLastProjectService" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="ReasonForWithdrawalOrNotReturning" class="form-label"></label>
+        <input asp-for="ReasonForWithdrawalOrNotReturning" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="Transfers" class="form-label"></label>
+        <input asp-for="Transfers" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-label"></label>
+        <input asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="DateOfUndergraduateDegreeCertificate" class="form-label"></label>
+        <input asp-for="DateOfUndergraduateDegreeCertificate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="FieldOfStudyDegreeCertificateEarned" class="form-label"></label>
+        <input asp-for="FieldOfStudyDegreeCertificateEarned" class="form-control" />
+    </div>
+
+    <h4 class="mt-4">Financial Information</h4>
+    <div class="mb-3">
+        <label asp-for="AmountOfFinancialAidReceived" class="form-label"></label>
+        <input asp-for="AmountOfFinancialAidReceived" type="number" step="0.01" min="0" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label asp-for="AmountOfSSSGrantAidAwarded" class="form-label"></label>
+        <input asp-for="AmountOfSSSGrantAidAwarded" type="number" step="0.01" min="0" class="form-control" />
+    </div>
+
+    <h4 class="mt-4">Other Information</h4>
+    <div class="mb-3">
+        <label asp-for="ParticipantNameChange" class="form-label"></label>
+        <input asp-for="ParticipantNameChange" class="form-control" />
+    </div>
+
+    <button class="btn btn-primary">Add</button>
+</form>

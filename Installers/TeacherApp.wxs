@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# TeacherApp Windows Installer Configuration (WiX)
+# This file defines the MSI installer for Windows
+# Prerequisites: WiX Toolset 3.11+ installed
+# 
+# Build command:
+#   candle.exe TeacherApp.wxs -o obj\
+#   light.exe -out TeacherApp.msi obj\TeacherApp.wixobj
+#
+# Or use: dotnet build /p:Configuration=Release
+
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:util="http://schemas.microsoft.com/wix/2006/util">
+
+    <!-- Product definition -->
+    <Product Id="*" 
+             Name="TeacherApp" 
+             Language="1033" 
+             Version="1.0.0.0" 
+             Manufacturer="TeacherApp Inc."
+             UpgradeCode="12345678-1234-1234-1234-123456789012">
+
+        <Package InstallerVersion="200" 
+                 Compressed="yes" 
+                 InstallScope="perMachine" 
+                 Description="TeacherApp - Student & Class Management"
+                 Manufacturer="TeacherApp Inc."/>
+
+        <MajorUpgrade DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit." />
+        <MediaTemplate EmbedCab="yes" />
+
+        <!-- Feature definition -->
+        <Feature Id="ProductFeature" Title="TeacherApp" Level="1">
+            <ComponentRef Id="ApplicationFiles" />
+            <ComponentRef Id="StartMenuShortcuts" />
+            <ComponentRef Id="DesktopShortcut" />
+        </Feature>
+
+        <!-- UI Dialogs (WixUI_Mondo provides standard install wizard) -->
+        <UIRef Id="WixUI_Mondo" />
+        <UIRef Id="WixUI_ErrorProgressText" />
+
+        <!-- License agreement -->
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    </Product>
+
+    <!-- Fragment for installation directory structure -->
+    <Fragment>
+        <StandardDirectory Id="ProgramFilesFolder">
+            <Directory Id="INSTALLFOLDER" Name="TeacherApp" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="ApplicationProgramsFolder" Name="TeacherApp" />
+        </StandardDirectory>
+
+        <StandardDirectory Id="DesktopFolder" />
+    </Fragment>
+
+    <!-- Fragment for application files -->
+    <Fragment>
+        <ComponentGroup Id="ApplicationFiles" Directory="INSTALLFOLDER">
+            <!-- Include all published files from bin/Release/net10.0/publish/ -->
+            <Component Id="ApplicationExe" Guid="12345678-1234-1234-1234-111111111111">
+                <File Id="TeacherAppExe" Source="$(var.PublishDir)TeacherApp.exe" KeyPath="yes" />
+            </Component>
+            <!-- Additional DLLs and runtime files would be included here -->
+        </ComponentGroup>
+
+        <Component Id="StartMenuShortcuts" Directory="ApplicationProgramsFolder" Guid="12345678-1234-1234-1234-222222222222">
+            <Shortcut Id="StartMenuShortcut" 
+                      Name="TeacherApp" 
+                      Description="Teacher & Student Management Application"
+                      Target="[INSTALLFOLDER]TeacherApp.exe" 
+                      WorkingDirectory="INSTALLFOLDER" />
+            <Shortcut Id="UninstallProduct" 
+                      Name="Uninstall TeacherApp" 
+                      Target="[SystemFolder]msiexec.exe" 
+                      Arguments="/x [ProductCode]" />
+            <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\TeacherApp" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+
+        <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="12345678-1234-1234-1234-333333333333">
+            <Shortcut Id="DesktopShortcut" 
+                      Name="TeacherApp" 
+                      Description="Teacher & Student Management Application"
+                      Target="[INSTALLFOLDER]TeacherApp.exe" 
+                      WorkingDirectory="INSTALLFOLDER" />
+            <RemoveFolder Id="DesktopFolder" On="uninstall" />
+            <RegistryValue Root="HKCU" Key="Software\TeacherApp" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
+        </Component>
+    </Fragment>
+</Wix>

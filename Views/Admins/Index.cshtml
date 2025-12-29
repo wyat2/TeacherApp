@@ -1,0 +1,43 @@
+@model IEnumerable<TeacherApp.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Admins";
+}
+
+<h2>Admins</h2>
+<p><a class="btn btn-primary" href="/Admins/Create">Add Admin</a></p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.FirstName</td>
+                <td>@u.LastName</td>
+                <td>@u.Email</td>
+                <td>@u.PhoneNumber</td>
+                <td>
+                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@u.Id">Details</a>
+                    @if (ViewBag.CanEdit == true)
+                    {
+                        <a class="btn btn-sm btn-primary ms-1" asp-action="Edit" asp-route-id="@u.Id">Edit</a>
+                    }
+                    @if (ViewBag.CanDelete == true)
+                    {
+                        <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this admin?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,149 @@
+@model TeacherApp.ViewModels.SetupWizardViewModel
+@{
+    ViewData["Title"] = "Setup Wizard";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TeacherApp - Initial Setup</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .setup-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        .setup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .setup-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .setup-header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .form-label {
+            font-weight: 600;
+            color: #333;
+            margin-top: 15px;
+        }
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-setup {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 30px;
+            border-radius: 5px;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-setup:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+        .checkbox-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+        }
+        .form-check-label {
+            margin-left: 5px;
+            color: #666;
+        }
+        .alert-info {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="setup-container">
+        <div class="setup-header">
+            <h1>📚 TeacherApp</h1>
+            <p>Initial Setup - Create Your Admin Account</p>
+        </div>
+
+        <div class="alert alert-info">
+            <strong>Welcome!</strong> Complete this setup to get started with TeacherApp.
+        </div>
+
+        <form asp-action="Index" method="post">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    @Html.ValidationSummary(true)
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="AdminEmail" class="form-label">Admin Email Address</label>
+                <input asp-for="AdminEmail" type="email" class="form-control" placeholder="admin@example.com" />
+                <span asp-validation-for="AdminEmail" class="text-danger small d-block mt-1"></span>
+                <small class="text-muted">This email will be used to log in to the system.</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AdminPassword" class="form-label">Password</label>
+                <input asp-for="AdminPassword" type="password" class="form-control" placeholder="Enter a strong password" />
+                <span asp-validation-for="AdminPassword" class="text-danger small d-block mt-1"></span>
+                <small class="text-muted">Minimum 8 characters recommended.</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Re-enter your password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger small d-block mt-1"></span>
+            </div>
+
+            <div class="checkbox-group">
+                <div class="form-check">
+                    <input asp-for="CreateSampleData" type="checkbox" class="form-check-input" id="sampleDataCheck" />
+                    <label class="form-check-label" for="sampleDataCheck">
+                        Add sample data (optional)
+                    </label>
+                </div>
+                <small class="text-muted d-block mt-2">
+                    If checked, sample students and classes will be added for testing.
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-setup">Complete Setup</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

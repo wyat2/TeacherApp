@@ -1,0 +1,43 @@
+@model TeacherApp.Models.RolePermission
+@{
+    ViewData["Title"] = "Edit Permissions";
+}
+
+<h2>Edit Permissions - @Model.RoleName</h2>
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="RoleName" />
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanDeleteStudents" />
+        <label class="form-check-label">Can Delete Students</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanManageAdmins" />
+        <label class="form-check-label">Can Manage Admins</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanEditAdmins" />
+        <label class="form-check-label">Can Edit Admins</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanEditDirectors" />
+        <label class="form-check-label">Can Edit Directors</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanEditTutors" />
+        <label class="form-check-label">Can Edit Tutors</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanDeleteAdmins" />
+        <label class="form-check-label">Can Delete Admins</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanDeleteDirectors" />
+        <label class="form-check-label">Can Delete Directors</label>
+    </div>
+    <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" asp-for="CanDeleteTutors" />
+        <label class="form-check-label">Can Delete Tutors</label>
+    </div>
+    <button class="btn btn-primary">Save</button>
+    <a class="btn btn-link" href="/Permissions">Cancel</a>
+</form>
