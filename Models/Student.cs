@@ -21,8 +21,6 @@ namespace TeacherApp.Models
 
         public required string ClassName { get; set; }
 
-        public required string Grade { get; set; }
-
         [ForeignKey("CreatedByUser")]
         public string? CreatedByUserId { get; set; }
 

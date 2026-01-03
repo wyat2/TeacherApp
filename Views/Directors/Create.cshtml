@@ -4,25 +4,68 @@
 
 <h2>Create Director</h2>
 <form asp-action="Create" method="post">
-    <div class="mb-3">
-        <label>Email</label>
-        <input name="email" class="form-control" />
+    <div class="row mb-2">
+        <div class="col-md-12">
+            <label class="form-label">Email</label>
+            <input name="email" class="form-control form-control-sm" />
+        </div>
     </div>
-    <div class="mb-3">
-        <label>First Name</label>
-        <input name="firstName" class="form-control" />
+    <div class="row mb-2">
+        <div class="col-md-5">
+            <label class="form-label">First Name</label>
+            <input name="firstName" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">MI</label>
+            <input name="middleInitial" class="form-control form-control-sm" maxlength="1" />
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Last Name</label>
+            <input name="lastName" class="form-control form-control-sm" />
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Last Name</label>
-        <input name="lastName" class="form-control" />
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <label class="form-label">Password</label>
+            <input name="password" type="password" class="form-control form-control-sm" />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Telephone</label>
+            <input name="phoneNumber" class="form-control form-control-sm" />
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Password</label>
-        <input name="password" type="password" class="form-control" />
+    <div class="row mb-2">
+        <div class="col-md-6">
+            <div class="form-check">
+                <input type="checkbox" name="isProjectDirector" class="form-check-input" id="isProjectDirector" value="true" />
+                <label class="form-check-label" for="isProjectDirector">Project Director</label>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-check">
+                <input type="checkbox" name="isDataEntryPerson" class="form-check-input" id="isDataEntryPerson" value="true" />
+                <label class="form-check-label" for="isDataEntryPerson">Data Entry Person</label>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Telephone</label>
-        <input name="phoneNumber" class="form-control" />
-    </div>
-    <button class="btn btn-primary">Create Director</button>
+    <button class="btn btn-primary btn-sm">Create Director</button>
 </form>
+
+@section Scripts {
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Add hidden fields for unchecked checkboxes
+            var checkboxes = ['isProjectDirector', 'isDataEntryPerson'];
+            checkboxes.forEach(function(name) {
+                var checkbox = document.querySelector('input[name="' + name + '"]');
+                if (!checkbox.checked) {
+                    var hidden = document.createElement('input');
+                    hidden.type = 'hidden';
+                    hidden.name = name;
+                    hidden.value = 'false';
+                    this.appendChild(hidden);
+                }
+            }.bind(this));
+        });
+    </script>
+}

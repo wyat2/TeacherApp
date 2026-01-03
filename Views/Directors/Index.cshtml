@@ -94,30 +94,38 @@
         <form method="post" asp-action="SaveSchoolInfo">
             @Html.AntiForgeryToken()
             <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
-            <div class="mb-3">
-                <label class="form-label">School Name</label>
-                <input type="text" name="schoolName" class="form-control" value="@info.SchoolName" />
+            <div class="row mb-2">
+                <div class="col-md-12">
+                    <label class="form-label">School Name</label>
+                    <input type="text" name="schoolName" class="form-control form-control-sm" value="@info.SchoolName" />
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Address</label>
-                <input type="text" name="address" class="form-control" value="@info.Address" />
+            <div class="row mb-2">
+                <div class="col-md-8">
+                    <label class="form-label">Address</label>
+                    <input type="text" name="address" class="form-control form-control-sm" value="@info.Address" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Telephone number</label>
+                    <input type="text" name="schoolPhone" class="form-control form-control-sm" value="@info.SchoolPhone" />
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Telephone number</label>
-                <input type="text" name="schoolPhone" class="form-control" value="@info.SchoolPhone" />
-            </div>
-            <button class="btn btn-primary" type="submit">Save School Info</button>
+            <button class="btn btn-primary btn-sm" type="submit">Save School Info</button>
         </form>
     </div>
 
     <div class="tab-pane fade" id="director" role="tabpanel">
-        <table class="table">
+        <p><a class="btn btn-primary btn-sm mb-2" href="/Directors/Create">Add Director</a></p>
+        <table class="table table-sm table-hover">
             <thead>
                 <tr>
                     <th>First Name</th>
+                    <th>MI</th>
                     <th>Last Name</th>
                     <th>Email</th>
                     <th>Phone</th>
+                    <th>Proj Dir</th>
+                    <th>Data Entry</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -126,9 +134,12 @@
                 {
                     <tr>
                         <td>@u.FirstName</td>
+                        <td>@u.MiddleInitial</td>
                         <td>@u.LastName</td>
                         <td>@u.Email</td>
                         <td>@u.PhoneNumber</td>
+                        <td>@(u.IsProjectDirector ? "✓" : "")</td>
+                        <td>@(u.IsDataEntryPerson ? "✓" : "")</td>
                         <td>
                             <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@u.Id">Details</a>
                             @if (ViewBag.CanEdit == true)
@@ -153,32 +164,56 @@
         <form method="post" asp-action="SaveGrantInfo" id="grantInfoForm">
             @Html.AntiForgeryToken()
             <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
-            <div class="mb-3">
-                <label class="form-label">Grant type</label>
-                <input type="text" name="grantType" class="form-control" value="@info.GrantType" />
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Grant type</label>
+                    <input type="text" name="grantType" class="form-control form-control-sm" value="@info.GrantType" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">PR/Award Number<sub style="color: red; font-size: 0.7em;">(1)</sub></label>
+                    <input type="text" name="prAwardNumber" class="form-control form-control-sm" value="@info.PRAwardNumber" 
+                           pattern="[0-9]{11}" maxlength="11" inputmode="numeric"
+                           title="PR/Award Number must be exactly 11 digits" 
+                           placeholder="Enter 11-digit number" />
+                    <small class="form-text text-muted">Must be exactly 11 digits. This will update all student profiles.</small>
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">PR/Award Number<sub style="color: red; font-size: 0.7em;">(1)</sub></label>
-                <input type="text" name="prAwardNumber" class="form-control" value="@info.PRAwardNumber" 
-                       pattern="[0-9]{11}" maxlength="11" inputmode="numeric"
-                       title="PR/Award Number must be exactly 11 digits" 
-                       placeholder="Enter 11-digit number" />
-                <small class="form-text text-muted">Must be exactly 11 digits. This will update all student profiles.</small>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Type of Institution</label>
+                    <input type="text" name="typeOfInstitution" class="form-control form-control-sm" value="@info.TypeOfInstitution" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Project Type</label>
+                    <input type="text" name="projectType" class="form-control form-control-sm" value="@info.ProjectType" />
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Grant budget amount</label>
-                <input type="number" step="0.01" name="grantBudget" class="form-control" value="@(info.GrantBudget?.ToString() ?? string.Empty)" />
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">GPA Scale</label>
+                    <input type="text" name="gpaScale" class="form-control form-control-sm" value="@info.GPAScale" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Name of Grantee Institution</label>
+                    <input type="text" name="nameOfGranteeInstitution" class="form-control form-control-sm" value="@info.NameOfGranteeInstitution" />
+                </div>
             </div>
-            <div class="mb-3">
-                <label class="form-label">Batch Year<sub style="color: red; font-size: 0.7em;">(2)</sub></label>
-                <input type="text" name="batchYear" id="batchYearInput" class="form-control" value="@info.BatchYear" 
-                       pattern="[0-9]{4}" maxlength="4" inputmode="numeric"
-                       title="Batch Year must be exactly 4 digits" 
-                       placeholder="Enter 4-digit year" 
-                       @(string.IsNullOrEmpty(selectedBatchYear) ? "required" : "") />
-                <small class="form-text text-muted">Must be exactly 4 digits (e.g., 2025). This will update all student profiles.</small>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Grant budget amount</label>
+                    <input type="number" step="0.01" name="grantBudget" class="form-control form-control-sm" value="@(info.GrantBudget?.ToString() ?? string.Empty)" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Batch Year<sub style="color: red; font-size: 0.7em;">(2)</sub></label>
+                    <input type="text" name="batchYear" id="batchYearInput" class="form-control form-control-sm" value="@info.BatchYear" 
+                           pattern="[0-9]{4}" maxlength="4" inputmode="numeric"
+                           title="Batch Year must be exactly 4 digits" 
+                           placeholder="Enter 4-digit year" 
+                           @(string.IsNullOrEmpty(selectedBatchYear) ? "required" : "") />
+                    <small class="form-text text-muted">Must be exactly 4 digits (e.g., 2025). This will update all student profiles.</small>
+                </div>
             </div>
-            <button class="btn btn-primary" type="submit">Save Grant Info</button>
+            <button class="btn btn-primary btn-sm" type="submit">Save Grant Info</button>
         </form>
     </div>
 </div>
@@ -209,40 +244,3 @@
         });
     </script>
 }
-<p><a class="btn btn-primary" href="/Directors/Create">Add Director</a></p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var u in Model)
-        {
-            <tr>
-                <td>@u.FirstName</td>
-                <td>@u.LastName</td>
-                <td>@u.Email</td>
-                <td>@u.PhoneNumber</td>
-                <td>
-                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@u.Id">Details</a>
-                    @if (ViewBag.CanEdit == true)
-                    {
-                        <a class="btn btn-sm btn-primary ms-1" asp-action="Edit" asp-route-id="@u.Id">Edit</a>
-                    }
-                    @if (ViewBag.CanDelete == true)
-                    {
-                        <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this director?');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>

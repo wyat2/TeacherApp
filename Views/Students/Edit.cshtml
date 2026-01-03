@@ -84,10 +84,6 @@
                         <label asp-for="ClassName" class="form-label"></label>
                         <input asp-for="ClassName" class="form-control" />
                     </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="Grade" class="form-label"></label>
-                        <input asp-for="Grade" class="form-control" />
-                    </div>
                     <div class="col-12">
                         <label class="form-label">Ethnicity (select all that apply)</label>
                         <input type="hidden" name="Ethnicity" id="ethnicityHidden" value="@Model.Ethnicity" />
@@ -219,7 +215,14 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label asp-for="AcademicStanding" class="form-label">Academic Standing <sub style="color: red; font-size: 0.7em;">24</sub></label>
-                                <input asp-for="AcademicStanding" class="form-control" />
+                                <select asp-for="AcademicStanding" class="form-control">
+                                    <option value="">-- Select Academic Standing --</option>
+                                    <option value="Freshman">Freshman</option>
+                                    <option value="Sophomore">Sophomore</option>
+                                    <option value="Junior">Junior</option>
+                                    <option value="Senior">Senior</option>
+                                    <option value="Graduate Student">Graduate Student</option>
+                                </select>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label asp-for="CumulativeGPA" class="form-label">Cumulative GPA<sub style="color: red; font-size: 0.7em;">25</sub></label>

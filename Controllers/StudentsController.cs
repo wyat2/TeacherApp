@@ -56,7 +56,7 @@ namespace TeacherApp.Controllers
             return false;
         }
 
-        public async Task<IActionResult> Index(string? q, string? grade, string? className)
+        public async Task<IActionResult> Index(string? q, string? className)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             
@@ -75,10 +75,6 @@ namespace TeacherApp.Controllers
                                                     || ((s.LastName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.Email ?? string.Empty).ToLower().Contains(lower)));
             }
-            if (!string.IsNullOrWhiteSpace(grade))
-            {
-                studentsQuery = studentsQuery.Where(s => s.Grade == grade);
-            }
             if (!string.IsNullOrWhiteSpace(className))
             {
                 studentsQuery = studentsQuery.Where(s => s.ClassName == className);
@@ -87,15 +83,13 @@ namespace TeacherApp.Controllers
             var students = await studentsQuery.ToListAsync();
             ViewBag.CanDeleteStudents = UserHasDeleteStudentPermission();
             ViewBag.Query = q;
-            ViewBag.SelectedGrade = grade;
             ViewBag.SelectedClass = className;
-            ViewBag.Grades = _context.Students.Select(s => s.Grade).Distinct().OrderBy(g => g).ToList();
             ViewBag.Classes = _context.Students.Select(s => s.ClassName).Distinct().OrderBy(c => c).ToList();
             return View(students);
         }
 
         [HttpGet]
-        public async Task<IActionResult> ExportCsv(string? q, string? grade, string? className)
+        public async Task<IActionResult> ExportCsv(string? q, string? className)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             if (!string.IsNullOrWhiteSpace(q))
@@ -105,10 +99,6 @@ namespace TeacherApp.Controllers
                                                     || ((s.LastName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.Email ?? string.Empty).ToLower().Contains(lower)));
             }
-            if (!string.IsNullOrWhiteSpace(grade))
-            {
-                studentsQuery = studentsQuery.Where(s => s.Grade == grade);
-            }
             if (!string.IsNullOrWhiteSpace(className))
             {
                 studentsQuery = studentsQuery.Where(s => s.ClassName == className);
@@ -117,7 +107,7 @@ namespace TeacherApp.Controllers
             var students = await studentsQuery.ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Id,FirstName,MiddleInitial,LastName,DateOfBirth,Gender,CaseNumber,ClassName,Grade,Ethnicity,Email,Eligibility,StudentDisability,AcademicNeed,FirstEnrollmentDate,DateOfFirstProjectService,CollegeGradeLevelEntryIntoProject,EnrollmentStatusInAcademicYearFirstServed,StudentCohortYear,ParticipantStatusDuringAcademicYearBeingReported,EnrollmentStatusAtEndOfAcademicYear,AcademicStanding,CumulativeGPA,CollegeGradeLevelAtBeginningOfAcademicYear,CollegeGradeLevelAtEndOfAcademicYear,DateOfLastProjectService,ReasonForWithdrawalOrNotReturning,Transfers,UndergraduateDegreeCertificateCompletedAtGranteeInstitution,DateOfUndergraduateDegreeCertificate,FieldOfStudyDegreeCertificateEarned,PersistenceStatusAtBeginningOfAcademicYear,AmountOfFinancialAidReceived,AmountOfSSSGrantAidAwarded,ParticipantNameChange");
+            sb.AppendLine("Id,FirstName,MiddleInitial,LastName,DateOfBirth,Gender,CaseNumber,ClassName,Ethnicity,Email,Eligibility,StudentDisability,AcademicNeed,FirstEnrollmentDate,DateOfFirstProjectService,CollegeGradeLevelEntryIntoProject,EnrollmentStatusInAcademicYearFirstServed,StudentCohortYear,ParticipantStatusDuringAcademicYearBeingReported,EnrollmentStatusAtEndOfAcademicYear,AcademicStanding,CumulativeGPA,CollegeGradeLevelAtBeginningOfAcademicYear,CollegeGradeLevelAtEndOfAcademicYear,DateOfLastProjectService,ReasonForWithdrawalOrNotReturning,Transfers,UndergraduateDegreeCertificateCompletedAtGranteeInstitution,DateOfUndergraduateDegreeCertificate,FieldOfStudyDegreeCertificateEarned,PersistenceStatusAtBeginningOfAcademicYear,AmountOfFinancialAidReceived,AmountOfSSSGrantAidAwarded,ParticipantNameChange");
             foreach (var s in students)
             {
                 // Escape quotes and commas by wrapping fields in double quotes and escaping existing quotes
@@ -127,7 +117,7 @@ namespace TeacherApp.Controllers
                     return '"' + value.Replace("\"", "\"\"") + '"';
                 }
 
-                sb.AppendLine($"{s.Id},{Escape(s.FirstName)},{Escape(s.MiddleInitial)},{Escape(s.LastName)},{Escape(s.DateOfBirth?.ToString("MM/dd/yyyy"))},{Escape(s.Gender)},{Escape(s.CaseNumber)},{Escape(s.ClassName)},{Escape(s.Grade)},{Escape(s.Ethnicity)},{Escape(s.Email)},{Escape(s.Eligibility)},{Escape(s.StudentDisability)},{Escape(s.AcademicNeed)},{Escape(s.FirstEnrollmentDate?.ToString("MM/dd/yyyy"))},{Escape(s.DateOfFirstProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.CollegeGradeLevelEntryIntoProject)},{Escape(s.EnrollmentStatusInAcademicYearFirstServed)},{Escape(s.StudentCohortYear)},{Escape(s.ParticipantStatusDuringAcademicYearBeingReported)},{Escape(s.EnrollmentStatusAtEndOfAcademicYear)},{Escape(s.AcademicStanding)},{Escape(s.CumulativeGPA?.ToString())},{Escape(s.CollegeGradeLevelAtBeginningOfAcademicYear)},{Escape(s.CollegeGradeLevelAtEndOfAcademicYear)},{Escape(s.DateOfLastProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.ReasonForWithdrawalOrNotReturning)},{Escape(s.Transfers)},{Escape(s.UndergraduateDegreeCertificateCompletedAtGranteeInstitution)},{Escape(s.DateOfUndergraduateDegreeCertificate?.ToString("MM/dd/yyyy"))},{Escape(s.FieldOfStudyDegreeCertificateEarned)},{Escape(s.PersistenceStatusAtBeginningOfAcademicYear)},{Escape(s.AmountOfFinancialAidReceived?.ToString())},{Escape(s.AmountOfSSSGrantAidAwarded?.ToString())},{Escape(s.ParticipantNameChange)}");
+                sb.AppendLine($"{s.Id},{Escape(s.FirstName)},{Escape(s.MiddleInitial)},{Escape(s.LastName)},{Escape(s.DateOfBirth?.ToString("MM/dd/yyyy"))},{Escape(s.Gender)},{Escape(s.CaseNumber)},{Escape(s.ClassName)},{Escape(s.Ethnicity)},{Escape(s.Email)},{Escape(s.Eligibility)},{Escape(s.StudentDisability)},{Escape(s.AcademicNeed)},{Escape(s.FirstEnrollmentDate?.ToString("MM/dd/yyyy"))},{Escape(s.DateOfFirstProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.CollegeGradeLevelEntryIntoProject)},{Escape(s.EnrollmentStatusInAcademicYearFirstServed)},{Escape(s.StudentCohortYear)},{Escape(s.ParticipantStatusDuringAcademicYearBeingReported)},{Escape(s.EnrollmentStatusAtEndOfAcademicYear)},{Escape(s.AcademicStanding)},{Escape(s.CumulativeGPA?.ToString())},{Escape(s.CollegeGradeLevelAtBeginningOfAcademicYear)},{Escape(s.CollegeGradeLevelAtEndOfAcademicYear)},{Escape(s.DateOfLastProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.ReasonForWithdrawalOrNotReturning)},{Escape(s.Transfers)},{Escape(s.UndergraduateDegreeCertificateCompletedAtGranteeInstitution)},{Escape(s.DateOfUndergraduateDegreeCertificate?.ToString("MM/dd/yyyy"))},{Escape(s.FieldOfStudyDegreeCertificateEarned)},{Escape(s.PersistenceStatusAtBeginningOfAcademicYear)},{Escape(s.AmountOfFinancialAidReceived?.ToString())},{Escape(s.AmountOfSSSGrantAidAwarded?.ToString())},{Escape(s.ParticipantNameChange)}");
             }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());

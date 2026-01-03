@@ -167,6 +167,12 @@ namespace TeacherApp.Data.Migrations
                     b.Property<string>("FirstName")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsDataEntryPerson")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsProjectDirector")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("LastName")
                         .HasColumnType("TEXT");
 
@@ -174,6 +180,9 @@ namespace TeacherApp.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("MiddleInitial")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("NormalizedEmail")
@@ -239,19 +248,31 @@ namespace TeacherApp.Data.Migrations
                     b.Property<string>("DirectorPhone")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("GPAScale")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal?>("GrantBudget")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("GrantType")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("NameOfGranteeInstitution")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("PRAwardNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProjectType")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SchoolName")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("SchoolPhone")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("TypeOfInstitution")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -379,10 +400,6 @@ namespace TeacherApp.Data.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Gender")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Grade")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LastName")

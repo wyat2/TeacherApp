@@ -8,12 +8,18 @@
     <dl class="row">
         <dt class="col-sm-2">First Name</dt>
         <dd class="col-sm-10">@Model.FirstName</dd>
+        <dt class="col-sm-2">Middle Initial</dt>
+        <dd class="col-sm-10">@Model.MiddleInitial</dd>
         <dt class="col-sm-2">Last Name</dt>
         <dd class="col-sm-10">@Model.LastName</dd>
         <dt class="col-sm-2">Email</dt>
         <dd class="col-sm-10">@Model.Email</dd>
         <dt class="col-sm-2">Phone</dt>
         <dd class="col-sm-10">@Model.PhoneNumber</dd>
+        <dt class="col-sm-2">Project Director</dt>
+        <dd class="col-sm-10">@(Model.IsProjectDirector ? "Yes" : "No")</dd>
+        <dt class="col-sm-2">Data Entry Person</dt>
+        <dd class="col-sm-10">@(Model.IsDataEntryPerson ? "Yes" : "No")</dd>
     </dl>
 </div>
 <p>

@@ -20,6 +20,10 @@ namespace TeacherApp.Models
         // Grant info
         public string? GrantType { get; set; }
         public string? PRAwardNumber { get; set; }
+        public string? TypeOfInstitution { get; set; }
+        public string? ProjectType { get; set; }
+        public string? GPAScale { get; set; }
+        public string? NameOfGranteeInstitution { get; set; }
         public decimal? GrantBudget { get; set; }
         public string? BatchYear { get; set; }
     }

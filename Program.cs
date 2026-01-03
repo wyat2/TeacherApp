@@ -20,6 +20,19 @@ if (args.Contains("--populate-case-numbers"))
     return;
 }
 
+if (args.Contains("--update-academic-standing"))
+{
+    // Run academic standing update and exit
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    
+    using (var context = new ApplicationDbContext(optionsBuilder.Options))
+    {
+        await TeacherApp.UpdateAcademicStanding.Run(context);
+    }
+    return;
+}
+
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db"));
@@ -138,7 +151,6 @@ using (var scope = app.Services.CreateScope())
         var names = new[] { "Olivia", "Liam", "Emma", "Noah", "Ava", "Oliver", "Sophia", "Elijah", "Isabella", "Lucas", "Mia", "Mason", "Amelia", "Logan", "James", "Ethan", "Harper", "Benjamin", "Evelyn", "Alexander" };
         var lasts = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin" };
         var classes = new[] { "1A", "1B", "2A", "2B", "3A", "3B", "4A", "4B", "5A", "5B" };
-        var grades = new[] { "A", "B", "C", "D", "F" };
         var ethnicities = new[] { "Hispanic", "Asian", "African American", "Caucasian", "Native American", "Pacific Islander", "Multiracial" };
         var rnd = new Random();
         var adminUser = userManager.FindByEmailAsync("admin@example.com").Result;
@@ -157,7 +169,6 @@ using (var scope = app.Services.CreateScope())
                 LastName = l,
                 Email = email,
                 ClassName = classes[rnd.Next(classes.Length)],
-                Grade = grades[rnd.Next(grades.Length)],
                 Ethnicity = ethnicities[rnd.Next(ethnicities.Length)],
                 CreatedByUserId = createdByUserId
             };

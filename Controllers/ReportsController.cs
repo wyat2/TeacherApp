@@ -38,9 +38,7 @@ namespace TeacherApp.Controllers
 
         [HttpPost]
         public async Task<IActionResult> GenerateReport(
-            string format,
-            string? firstName,
-            string? lastName,
+            string? academicStanding,
             string? eligibility,
             string? ethnicity,
             string? gender,
@@ -54,14 +52,76 @@ namespace TeacherApp.Controllers
                 .Include(s => s.StudentClasses)
                 .AsQueryable();
 
-            if (!string.IsNullOrEmpty(firstName))
+            if (!string.IsNullOrEmpty(academicStanding))
             {
-                query = query.Where(s => s.FirstName.Contains(firstName));
+                query = query.Where(s => s.AcademicStanding == academicStanding);
             }
 
-            if (!string.IsNullOrEmpty(lastName))
+            if (!string.IsNullOrEmpty(eligibility))
             {
-                query = query.Where(s => s.LastName.Contains(lastName));
+                query = query.Where(s => s.Eligibility == eligibility);
+            }
+
+            if (!string.IsNullOrEmpty(ethnicity))
+            {
+                query = query.Where(s => s.Ethnicity != null && s.Ethnicity.Contains(ethnicity));
+            }
+
+            if (!string.IsNullOrEmpty(gender))
+            {
+                query = query.Where(s => s.Gender == gender);
+            }
+
+            if (!string.IsNullOrEmpty(batchYear))
+            {
+                query = query.Where(s => s.BatchYear == batchYear);
+            }
+
+            if (enrollmentDateFrom.HasValue)
+            {
+                query = query.Where(s => s.FirstEnrollmentDate >= enrollmentDateFrom.Value);
+            }
+
+            if (enrollmentDateTo.HasValue)
+            {
+                query = query.Where(s => s.FirstEnrollmentDate <= enrollmentDateTo.Value);
+            }
+
+            var students = await query.OrderBy(s => s.LastName).ThenBy(s => s.FirstName).ToListAsync();
+
+            // Store filters in ViewBag for display
+            ViewBag.AcademicStanding = academicStanding;
+            ViewBag.Eligibility = eligibility;
+            ViewBag.Ethnicity = ethnicity;
+            ViewBag.Gender = gender;
+            ViewBag.BatchYear = batchYear;
+            ViewBag.EnrollmentDateFrom = enrollmentDateFrom;
+            ViewBag.EnrollmentDateTo = enrollmentDateTo;
+
+            // Return view with results
+            return View("Results", students);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DownloadReport(
+            string format,
+            string? academicStanding,
+            string? eligibility,
+            string? ethnicity,
+            string? gender,
+            string? batchYear,
+            DateTime? enrollmentDateFrom,
+            DateTime? enrollmentDateTo)
+        {
+            // Build query with same filters
+            var query = _context.Students
+                .Include(s => s.CreatedByUser)
+                .Include(s => s.StudentClasses)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(academicStanding))
+            {
+                query = query.Where(s => s.AcademicStanding == academicStanding);
             }
 
             if (!string.IsNullOrEmpty(eligibility))
@@ -113,12 +173,12 @@ namespace TeacherApp.Controllers
             var csv = new StringBuilder();
             
             // Headers
-            csv.AppendLine("Case Number,First Name,Middle Initial,Last Name,Email,Date of Birth,Gender,Ethnicity,Eligibility,First Enrollment Date,Cumulative GPA,Grade,Class Count,Created By");
+            csv.AppendLine("Case Number,First Name,Middle Initial,Last Name,Email,Date of Birth,Gender,Ethnicity,Eligibility,First Enrollment Date,Cumulative GPA,Class Count,Created By");
 
             // Data rows
             foreach (var student in students)
             {
-                csv.AppendLine($"\"{student.CaseNumber ?? ""}\",\"{student.FirstName}\",\"{student.MiddleInitial ?? ""}\",\"{student.LastName}\",\"{student.Email ?? ""}\",\"{student.DateOfBirth?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.Gender ?? ""}\",\"{student.Ethnicity ?? ""}\",\"{student.Eligibility ?? ""}\",\"{student.FirstEnrollmentDate?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.CumulativeGPA?.ToString() ?? ""}\",\"{student.Grade ?? ""}\",\"{student.StudentClasses?.Count ?? 0}\",\"{student.CreatedByUser?.Email ?? ""}\"");
+                csv.AppendLine($"\"{student.CaseNumber ?? ""}\",\"{student.FirstName}\",\"{student.MiddleInitial ?? ""}\",\"{student.LastName}\",\"{student.Email ?? ""}\",\"{student.DateOfBirth?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.Gender ?? ""}\",\"{student.Ethnicity ?? ""}\",\"{student.Eligibility ?? ""}\",\"{student.FirstEnrollmentDate?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.CumulativeGPA?.ToString() ?? ""}\",\"{student.StudentClasses?.Count ?? 0}\",\"{student.CreatedByUser?.Email ?? ""}\"");
             }
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());

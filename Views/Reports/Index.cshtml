@@ -12,14 +12,17 @@
         <div class="card-body">
             <form id="reportForm" asp-action="GenerateReport" method="post">
                 <div class="row g-3">
-                    <!-- Name Filters -->
+                    <!-- Academic Standing -->
                     <div class="col-12 col-md-6 col-lg-4">
-                        <label for="firstName" class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Filter by first name" />
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <label for="lastName" class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Filter by last name" />
+                        <label for="academicStanding" class="form-label">Academic Standing</label>
+                        <select class="form-select" id="academicStanding" name="academicStanding">
+                            <option value="">All</option>
+                            <option value="Freshman">Freshman</option>
+                            <option value="Sophomore">Sophomore</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Graduate Student">Graduate Student</option>
+                        </select>
                     </div>
 
                     <!-- Eligibility -->
@@ -86,31 +89,10 @@
                     </div>
                 </div>
 
-                <hr class="my-4" />
-
-                <div class="row g-3">
-                    <div class="col-12">
-                        <h5>Export Format</h5>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="format" id="formatCSV" value="csv" checked />
-                            <label class="form-check-label" for="formatCSV">
-                                CSV (Comma-Separated Values)
-                            </label>
-                        </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="format" id="formatPDF" value="pdf" />
-                            <label class="form-check-label" for="formatPDF">
-                                PDF (Portable Document Format)
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="mt-4 d-flex gap-2 flex-wrap">
                     <button type="submit" class="btn btn-primary">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
-                            <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293z"/>
-                            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
                         </svg>
                         Generate Report
                     </button>

@@ -5,9 +5,12 @@ namespace TeacherApp.Models
     public class ApplicationUser : IdentityUser
     {
         public string? FirstName { get; set; }
+        public string? MiddleInitial { get; set; }
         public string? LastName { get; set; }
         // Whether this director is the primary director (only one director should be primary)
         public bool Primary { get; set; }
+        public bool IsProjectDirector { get; set; }
+        public bool IsDataEntryPerson { get; set; }
         // PhoneNumber is already provided by IdentityUser
     }
 }

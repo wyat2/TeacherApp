@@ -199,7 +199,7 @@ namespace TeacherApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SaveGrantInfo(string? grantType, string? prAwardNumber, decimal? grantBudget, string? batchYear, string? currentBatchYear)
+        public IActionResult SaveGrantInfo(string? grantType, string? prAwardNumber, string? typeOfInstitution, string? projectType, string? gpaScale, string? nameOfGranteeInstitution, decimal? grantBudget, string? batchYear, string? currentBatchYear)
         {
             // Validate PR/Award Number format (must be exactly 11 digits if provided)
             if (!string.IsNullOrWhiteSpace(prAwardNumber))
@@ -250,6 +250,10 @@ namespace TeacherApp.Controllers
 
             info.GrantType = grantType;
             info.PRAwardNumber = prAwardNumber;
+            info.TypeOfInstitution = typeOfInstitution;
+            info.ProjectType = projectType;
+            info.GPAScale = gpaScale;
+            info.NameOfGranteeInstitution = nameOfGranteeInstitution;
             info.GrantBudget = grantBudget;
             info.BatchYear = batchYear;
 
@@ -304,7 +308,7 @@ namespace TeacherApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(string email, string password, string? firstName, string? lastName, string? phoneNumber)
+        public async Task<IActionResult> Create(string email, string password, string? firstName, string? middleInitial, string? lastName, string? phoneNumber, bool isProjectDirector = false, bool isDataEntryPerson = false)
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
@@ -312,7 +316,7 @@ namespace TeacherApp.Controllers
                 return View();
             }
 
-            var user = new ApplicationUser { UserName = email, Email = email, FirstName = firstName, LastName = lastName, PhoneNumber = phoneNumber };
+            var user = new ApplicationUser { UserName = email, Email = email, FirstName = firstName, MiddleInitial = middleInitial, LastName = lastName, PhoneNumber = phoneNumber, IsProjectDirector = isProjectDirector, IsDataEntryPerson = isDataEntryPerson };
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
@@ -336,7 +340,7 @@ namespace TeacherApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Edit(string id, string? firstName, string? lastName, string? phoneNumber)
+        public async Task<IActionResult> Edit(string id, string? firstName, string? middleInitial, string? lastName, string? phoneNumber, bool isProjectDirector = false, bool isDataEntryPerson = false)
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
             if (!UserHasEditDirectorsPermission()) return Forbid();
@@ -344,8 +348,11 @@ namespace TeacherApp.Controllers
             if (user == null) return NotFound();
 
             user.FirstName = firstName;
+            user.MiddleInitial = middleInitial;
             user.LastName = lastName;
             user.PhoneNumber = phoneNumber;
+            user.IsProjectDirector = isProjectDirector;
+            user.IsDataEntryPerson = isDataEntryPerson;
 
             // Primary handled by dedicated action or checkbox in the Index tab; keep existing behavior here
 
