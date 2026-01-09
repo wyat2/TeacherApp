@@ -6,11 +6,14 @@ This directory contains installer scripts and configurations for TeacherApp acro
 
 TeacherApp is a comprehensive student and class management system designed for TRIO programs, featuring:
 - **Role-Based Access Control**: Admin, Director, Tutor, and Student roles with granular permissions
+- **Audit Logging**: Complete tracking of all user actions with timestamp, user, and operation details
 - **Student Management**: Track students with grade, class, ethnicity, and contact information
 - **User Management**: Separate interfaces for managing Admins, Directors, and Tutors
 - **Directors Dashboard**: Manage school information, director details, and grant tracking (PR/Award Number)
 - **Search & Filtering**: Find students by name/email and filter by grade or class
 - **Data Export**: Export filtered student data to CSV
+- **Security Compliance**: FERPA-compliant with comprehensive password policies and session management
+- **Data Update Scripts**: Built-in tools for data standardization and migration
 - **Setup Wizard**: First-run configuration for easy deployment
 
 ## Quick Start

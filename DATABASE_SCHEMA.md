@@ -2,8 +2,8 @@
 
 **Database Type:** SQLite  
 **Database File:** `teacherapp.db`  
-**Version:** 1.0.0  
-**Last Updated:** December 20, 2025
+**Version:** 1.1.0  
+**Last Updated:** January 8, 2026
 
 ---
 
@@ -210,6 +210,30 @@ Centralized storage for school, director, and grant information shared across al
 
 ---
 
+### AuditLogs
+
+Comprehensive audit trail of all user actions in the system.
+
+| Column | Type | Constraints | Notes |
+|--------|------|-------------|-------|
+| Id | INTEGER | PRIMARY KEY AUTO_INCREMENT | Unique audit log identifier |
+| Timestamp | TEXT | NOT NULL | ISO 8601 timestamp of the action |
+| UserId | TEXT | NOT NULL | References AspNetUsers.Id (user who performed action) |
+| UserName | TEXT | NOT NULL | Username for quick reference |
+| Action | TEXT | NOT NULL | Action performed (Create, Edit, Delete) |
+| EntityType | TEXT | NOT NULL | Type of entity (Student, Admin, Director, Tutor, etc.) |
+| EntityId | TEXT | NOT NULL | ID of the affected entity |
+| Details | TEXT | NULLABLE | Additional details about the action |
+
+**Indices:**
+- `IX_AuditLogs_UserId` - For filtering by user
+- `IX_AuditLogs_Timestamp` - For chronological queries
+- `IX_AuditLogs_EntityType` - For filtering by entity type
+
+**Purpose:** Maintains complete audit trail for compliance (FERPA) and security monitoring. Accessible via /Audit page (Admin only).
+
+---
+
 ## Support Tables
 
 ### __EFMigrationsHistory
@@ -232,6 +256,8 @@ Entity Framework Core migration tracking table. Automatically managed.
 - 20251220022040_AddDirectorsPageInfo
 - 20251220023825_AddDirectorPrimaryToUsers
 - 20251220215149_RenameGrantIdToPRAwardNumber
+- 20260104043201_AddAuditLogging
+- 20260106074622_RemoveClassNameFromStudent
 
 ---
 
@@ -241,16 +267,23 @@ Entity Framework Core migration tracking table. Automatically managed.
 ┌─────────────────────────────────────────────────────────┐
 │                    AspNetUsers                          │
 │ (PK: Id, FK: CreatedByUserId → Students)               │
-└────────────────┬──────────────────┬──────────────────────┘
-                 │                  │
-         ┌───────▼────────┐  ┌──────▼──────────────┐
-         │ AspNetUserRoles│  │     Students        │
-         │(FK: UserId,    │  │ (CreatedByUserId FK)│
-         │    RoleId)     │  └─────────────────────┘
-         │                │
-         │ AspNetRoles    │
-         │ (PK: Id)       │
-         └────────────────┘
+└────────┬───────────┬──────────────────┬──────────────────┘
+         │           │                  │
+         │   ┌───────▼────────┐  ┌──────▼──────────────┐
+         │   │ AspNetUserRoles│  │     Students        │
+         │   │(FK: UserId,    │  │ (CreatedByUserId FK)│
+         │   │    RoleId)     │  └─────────────────────┘
+         │   │                │
+         │   │ AspNetRoles    │
+         │   │ (PK: Id)       │
+         │   └────────────────┘
+         │
+         └───────────────────────────────────────┐
+                                                 │
+                                          ┌──────▼──────┐
+                                          │  AuditLogs  │
+                                          │ (UserId FK) │
+                                          └─────────────┘
 
 DirectorsPageInfos (separate, single shared record for all directors)
 RolePermissions (role-based permissions, separate table)
@@ -266,11 +299,15 @@ RolePermissions (role-based permissions, separate table)
    - AspNetUsers (Tutor) ← Students (CreatedByUserId)
    - One tutor can create multiple students
 
-3. **Roles → Permissions (One-to-Many)**
+3. **User → Audit Logs (One-to-Many)**
+   - AspNetUsers ← AuditLogs (UserId)
+   - One user can have many audit log entries
+
+4. **Roles → Permissions (One-to-Many)**
    - AspNetRoles ← RolePermissions (by RoleName)
    - Each role has one permission record
 
-4. **Directors → School Info (One-to-One logical)**
+5. **Directors → School Info (One-to-One logical)**
    - AspNetUsers (Director role) → DirectorsPageInfos
    - All directors reference same DirectorsPageInfos record
 
@@ -290,6 +327,9 @@ RolePermissions (role-based permissions, separate table)
 | IX_AspNetUserLogins_UserId | AspNetUserLogins | UserId | External login lookups |
 | IX_AspNetUserRoles_RoleId | AspNetUserRoles | RoleId | Role membership lookups |
 | IX_Students_CreatedByUserId | Students | CreatedByUserId | Filter students by creator |
+| IX_AuditLogs_UserId | AuditLogs | UserId | Filter audit logs by user |
+| IX_AuditLogs_Timestamp | AuditLogs | Timestamp | Chronological audit queries |
+| IX_AuditLogs_EntityType | AuditLogs | EntityType | Filter by entity type |
 
 ---
 
@@ -328,6 +368,22 @@ FROM DirectorsPageInfos
 LIMIT 1;
 ```
 
+### Recent Audit Logs
+```sql
+SELECT al.Timestamp, al.UserName, al.Action, al.EntityType, al.EntityId, al.Details
+FROM AuditLogs al
+ORDER BY al.Timestamp DESC
+LIMIT 50;
+```
+
+### Audit Logs for Specific User
+```sql
+SELECT al.Timestamp, al.Action, al.EntityType, al.EntityId, al.Details
+FROM AuditLogs al
+WHERE al.UserName = 'admin@example.com'
+ORDER BY al.Timestamp DESC;
+```
+
 ---
 
 ## Notes
@@ -337,6 +393,9 @@ LIMIT 1;
 - **Custom Fields**: FirstName, LastName, Primary added to AspNetUsers (standard Identity table)
 - **Single Record**: DirectorsPageInfos typically contains one row shared by all directors
 - **Security**: Passwords stored using ASP.NET Core Identity hashing (PBKDF2 by default)
+- **Audit Logging**: All create, edit, and delete operations are logged to AuditLogs table for compliance
+- **FERPA Compliance**: See SECURITY_COMPLIANCE.md for detailed security and privacy guidelines
+- **Data Standardization**: Use UpdateDropdownValues.cs and UpdateNamesToUppercase.cs scripts for data cleanup
 
 ---
 

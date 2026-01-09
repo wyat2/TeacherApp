@@ -196,15 +196,27 @@ TeacherApp includes four user roles with different permissions:
 - **Location**: Same directory as the application executable
 - **Backup**: Regularly backup the `teacherapp.db` file
 - **Migrations**: Database schema updates are applied automatically on startup
+- **Audit Logs**: All user actions are logged to AuditLogs table (viewable at /Audit)
+- **Data Maintenance**: Run update scripts when needed:
+  - `dotnet run --project UpdateDropdownValues.cs` - Update dropdown values
+  - `dotnet run --project UpdateNamesToUppercase.cs` - Standardize name formatting
 - For production with multiple users: Consider migrating to SQL Server/PostgreSQL in `appsettings.json`
 
 ### Key Features
 - **Student Management**: Create, edit, delete students with grade/class filtering and CSV export
 - **User Management**: Separate pages for Admins, Directors, and Tutors
 - **Role-Based Permissions**: Granular control over who can view/edit/delete each user type
+- **Audit Logging**: Comprehensive tracking of all user actions accessible via /Audit (Admin only)
+  - Tracks create, edit, delete operations on all entities
+  - Records timestamp, user, entity type, entity ID, and operation
+  - Filterable and searchable audit trail
 - **Directors Page**: Track school info, director info, and grant information (type, PR/Award Number, budget)
 - **Search & Filter**: Search by name/email on Students and Tutors pages; filter students by grade and class
 - **Export Data**: Export filtered student lists to CSV
+- **Security Compliance**: FERPA-compliant with detailed security documentation (see SECURITY_COMPLIANCE.md)
+- **Data Update Scripts**: Built-in utilities for data standardization:
+  - UpdateDropdownValues: Migrate dropdown values to new standards
+  - UpdateNamesToUppercase: Standardize name formatting
 
 ### Development/Testing: Seed Sample Data
 To populate the database with sample users and students for testing:
@@ -280,9 +292,12 @@ This will create:
 ### Common Issues (All Platforms)
 - **Setup wizard doesn't appear**: Check if `teacherapp.db` already exists; delete it to re-run setup
 - **Can't log in**: Ensure you completed the setup wizard; check username/password (case-sensitive)
-- **Missing navigation links**: Some links (Admins, Directors, Permissions) are only visible to Admin/Director roles
+- **Missing navigation links**: Some links (Admins, Directors, Permissions, Audit) are only visible to Admin/Director roles
+- **Can't access Audit page**: Audit logs (/Audit) are only accessible to Admin users
 - **Export CSV is empty**: Ensure you have students in the database and filters aren't too restrictive
 - **Database errors after update**: Migrations run automatically; if issues persist, backup and delete `teacherapp.db` to start fresh
+- **Old dropdown values**: Run UpdateDropdownValues.cs to migrate to new standardized values
+- **Name formatting inconsistent**: Run UpdateNamesToUppercase.cs to standardize all names to uppercase
 
 ---
 
