@@ -178,7 +178,7 @@ namespace TeacherApp.Controllers
             // Data rows
             foreach (var student in students)
             {
-                csv.AppendLine($"\"{student.CaseNumber ?? ""}\",\"{student.FirstName}\",\"{student.MiddleInitial ?? ""}\",\"{student.LastName}\",\"{student.Email ?? ""}\",\"{student.DateOfBirth?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.Gender ?? ""}\",\"{student.Ethnicity ?? ""}\",\"{student.Eligibility ?? ""}\",\"{student.FirstEnrollmentDate?.ToString("yyyy-MM-dd") ?? ""}\",\"{student.CumulativeGPA?.ToString() ?? ""}\",\"{student.StudentClasses?.Count ?? 0}\",\"{student.CreatedByUser?.Email ?? ""}\"");
+                csv.AppendLine($"\"{student.CaseNumber ?? ""}\",\"{student.FirstName}\",\"{student.MiddleInitial ?? ""}\",\"{student.LastName}\",\"{student.Email ?? ""}\",\"{student.DateOfBirth?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\",\"{student.Gender ?? ""}\",\"{student.Ethnicity ?? ""}\",\"{student.Eligibility ?? ""}\",\"{student.FirstEnrollmentDate?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\",\"{student.CumulativeGPA?.ToString() ?? ""}\",\"{student.StudentClasses?.Count ?? 0}\",\"{student.CreatedByUser?.Email ?? ""}\"");
             }
 
             var bytes = Encoding.UTF8.GetBytes(csv.ToString());
@@ -288,7 +288,7 @@ namespace TeacherApp.Controllers
                               $"\"{EscapeCSV(student.LastName)}\"," +
                               $"\"{EscapeCSV(student.FirstName)}\"," +
                               $"\"{EscapeCSV(student.MiddleInitial)}\"," +
-                              $"\"{student.DateOfBirth?.ToString("MM/dd/yyyy") ?? ""}\"," +
+                              $"\"{student.DateOfBirth?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\"," +
                               $"\"{EscapeCSV(student.Gender)}\"," +
                               $"\"{isHispanic}\"," +
                               $"\"{isAmericanIndian}\"," +
@@ -299,8 +299,8 @@ namespace TeacherApp.Controllers
                               $"\"{EscapeCSV(student.Eligibility)}\"," +
                               $"\"{EscapeCSV(student.StudentDisability)}\"," +
                               $"\"{EscapeCSV(student.AcademicNeed)}\"," +
-                              $"\"{student.FirstEnrollmentDate?.ToString("MM/dd/yyyy") ?? ""}\"," +
-                              $"\"{student.DateOfFirstProjectService?.ToString("MM/dd/yyyy") ?? ""}\"," +
+                              $"\"{student.FirstEnrollmentDate?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\"," +
+                              $"\"{student.DateOfFirstProjectService?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\"," +
                               $"\"{EscapeCSV(student.CollegeGradeLevelEntryIntoProject)}\"," +
                               $"\"{EscapeCSV(student.EnrollmentStatusInAcademicYearFirstServed)}\"," +
                               $"\"{EscapeCSV(student.StudentCohortYear)}\"," +
@@ -310,11 +310,11 @@ namespace TeacherApp.Controllers
                               $"\"{student.CumulativeGPA?.ToString("F2") ?? ""}\"," +
                               $"\"{EscapeCSV(student.CollegeGradeLevelAtBeginningOfAcademicYear)}\"," +
                               $"\"{EscapeCSV(student.CollegeGradeLevelAtEndOfAcademicYear)}\"," +
-                              $"\"{student.DateOfLastProjectService?.ToString("MM/dd/yyyy") ?? ""}\"," +
+                              $"\"{student.DateOfLastProjectService?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\"," +
                               $"\"{EscapeCSV(student.ReasonForWithdrawalOrNotReturning)}\"," +
                               $"\"{EscapeCSV(student.Transfers)}\"," +
                               $"\"{EscapeCSV(student.UndergraduateDegreeCertificateCompletedAtGranteeInstitution)}\"," +
-                              $"\"{student.DateOfUndergraduateDegreeCertificate?.ToString("MM/dd/yyyy") ?? ""}\"," +
+                              $"\"{student.DateOfUndergraduateDegreeCertificate?.ToString("MM/dd/yyyy") ?? "00/00/0000"}\"," +
                               $"\"{EscapeCSV(student.FieldOfStudyDegreeCertificateEarned)}\"," +
                               $"\"{EscapeCSV(student.PersistenceStatusAtBeginningOfAcademicYear)}\"," +
                               $"\"{student.AmountOfFinancialAidReceived?.ToString("F2") ?? ""}\"," +

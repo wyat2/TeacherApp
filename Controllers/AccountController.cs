@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TeacherApp.Models;
 using TeacherApp.ViewModels;
+using TeacherApp.Services;
 
 namespace TeacherApp.Controllers
 {
@@ -9,11 +10,13 @@ namespace TeacherApp.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAuditLogService _auditLog;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuditLogService auditLog)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _auditLog = auditLog;
         }
 
         [HttpGet]
@@ -54,7 +57,7 @@ namespace TeacherApp.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
         {
             if (!ModelState.IsValid) return View(model);
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
             if (result.Succeeded)
             {
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -62,7 +65,15 @@ namespace TeacherApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(string.Empty, "Account locked due to too many failed login attempts. Please try again in 15 minutes.");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            }
+            
             return View(model);
         }
 

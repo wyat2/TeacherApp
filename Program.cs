@@ -33,21 +33,62 @@ if (args.Contains("--update-academic-standing"))
     return;
 }
 
+if (args.Contains("--update-names-uppercase"))
+{
+    // Run names uppercase update and exit
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    
+    using (var context = new ApplicationDbContext(optionsBuilder.Options))
+    {
+        await TeacherApp.UpdateNamesToUppercase.Run(context);
+    }
+    return;
+}
+
+if (args.Contains("--update-dropdown-values"))
+{
+    // Run dropdown values update and exit
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    
+    using (var context = new ApplicationDbContext(optionsBuilder.Options))
+    {
+        await TeacherApp.UpdateDropdownValues.UpdateExistingStudentData(context);
+    }
+    return;
+}
+
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db"));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireDigit = false;
-    options.Password.RequiredLength = 6;
+    // Strong password policy for FERPA compliance
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 12;
+    options.Password.RequiredUniqueChars = 4;
+    
+    // Account lockout to prevent brute force attacks
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+    
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    
+    // Sign-in settings
+    options.SignIn.RequireConfirmedAccount = false;
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ISetupWizardService, SetupWizardService>();
 builder.Services.AddControllersWithViews();
 
@@ -59,6 +100,9 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
+
+// Enforce HTTPS for FERPA compliance
+app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 app.UseRouting();
@@ -168,7 +212,6 @@ using (var scope = app.Services.CreateScope())
                 FirstName = f,
                 LastName = l,
                 Email = email,
-                ClassName = classes[rnd.Next(classes.Length)],
                 Ethnicity = ethnicities[rnd.Next(ethnicities.Length)],
                 CreatedByUserId = createdByUserId
             };

@@ -3,26 +3,124 @@
 }
 
 <h2>Create Admin</h2>
+
+<div class="alert alert-warning mb-4">
+    <h5 class="alert-heading"><i class="bi bi-shield-lock"></i> Password Requirements</h5>
+    <p class="mb-2">Password must meet security requirements:</p>
+    <ul id="admin-requirements" class="mb-0" style="font-size: 14px;">
+        <li id="admin-length"><i class="bi bi-circle"></i> <strong>12+ characters</strong></li>
+        <li id="admin-upper"><i class="bi bi-circle"></i> Uppercase letter (A-Z)</li>
+        <li id="admin-lower"><i class="bi bi-circle"></i> Lowercase letter (a-z)</li>
+        <li id="admin-digit"><i class="bi bi-circle"></i> Digit (0-9)</li>
+        <li id="admin-special"><i class="bi bi-circle"></i> Special character (!@@#$%^&amp;*)</li>
+    </ul>
+    <div class="mt-2">
+        <small id="admin-strength" class="fw-bold text-muted">Enter password to check requirements</small>
+    </div>
+    <p class="mb-0 mt-2"><small><strong>Example:</strong> AdminP@ssw0rd2026!</small></p>
+</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
 <form asp-action="Create" method="post">
     <div class="mb-3">
-        <label>Email</label>
-        <input name="email" class="form-control" />
+        <label>Email @if (ViewData.ModelState["email"]?.Errors.Count > 0) { <span class="text-danger fw-bold">*</span> }</label>
+        <input name="email" type="email" class="form-control @(ViewData.ModelState["email"]?.Errors.Count > 0 ? "is-invalid" : "")" value="@ViewBag.Email" required />
     </div>
     <div class="mb-3">
         <label>First Name</label>
-        <input name="firstName" class="form-control" />
+        <input name="firstName" class="form-control" value="@ViewBag.FirstName" />
     </div>
     <div class="mb-3">
         <label>Last Name</label>
-        <input name="lastName" class="form-control" />
+        <input name="lastName" class="form-control" value="@ViewBag.LastName" />
     </div>
     <div class="mb-3">
-        <label>Password</label>
-        <input name="password" type="password" class="form-control" />
+        <label>Password @if (ViewData.ModelState["password"]?.Errors.Count > 0) { <span class="text-danger fw-bold">*</span> }</label>
+        <input name="password" type="password" class="form-control @(ViewData.ModelState["password"]?.Errors.Count > 0 ? "is-invalid" : "")" id="admin-password" placeholder="Must meet requirements above" required />
     </div>
     <div class="mb-3">
         <label>Telephone</label>
-        <input name="phoneNumber" class="form-control" />
+        <input name="phoneNumber" type="tel" class="form-control" value="@ViewBag.PhoneNumber" />
     </div>
-    <button class="btn btn-primary">Create Admin</button>
+    <button class="btn btn-primary" id="create-btn">Create Admin</button>
 </form>
+
+<style>
+    #admin-requirements li {
+        transition: all 0.3s ease;
+    }
+    #admin-requirements li i {
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+    #admin-requirements li.valid {
+        color: #28a745;
+        font-weight: 500;
+    }
+    #admin-requirements li.valid i {
+        color: #28a745 !important;
+    }
+    #admin-requirements li.valid i::before {
+        content: "\f26b"; /* bi-check-circle-fill */
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('admin-password');
+    const strengthIndicator = document.getElementById('admin-strength');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            const hasLength = password.length >= 12;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasDigit = /[0-9]/.test(password);
+            const hasSpecial = /[!@@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]/.test(password);
+            
+            updateReq('admin-length', hasLength);
+            updateReq('admin-upper', hasUpper);
+            updateReq('admin-lower', hasLower);
+            updateReq('admin-digit', hasDigit);
+            updateReq('admin-special', hasSpecial);
+            
+            const count = [hasLength, hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+            
+            if (password.length === 0) {
+                strengthIndicator.textContent = 'Enter password to check requirements';
+                strengthIndicator.className = 'fw-bold text-muted';
+            } else if (count === 5) {
+                strengthIndicator.textContent = '✓ Password meets all requirements!';
+                strengthIndicator.className = 'fw-bold text-success';
+            } else {
+                strengthIndicator.textContent = `${count}/5 requirements met`;
+                strengthIndicator.className = count >= 3 ? 'fw-bold text-warning' : 'fw-bold text-danger';
+            }
+        });
+    }
+    
+    function updateReq(id, valid) {
+        const el = document.getElementById(id);
+        if (el) {
+            if (valid) {
+                el.classList.add('valid');
+            } else {
+                el.classList.remove('valid');
+            }
+        }
+    }
+});
+</script>

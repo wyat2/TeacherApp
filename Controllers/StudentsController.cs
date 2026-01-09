@@ -13,10 +13,12 @@ namespace TeacherApp.Controllers
     public class StudentsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IAuditLogService _auditLog;
         
-        public StudentsController(ApplicationDbContext context)
+        public StudentsController(ApplicationDbContext context, IAuditLogService auditLog)
         {
             _context = context;
+            _auditLog = auditLog;
         }
 
         private async Task<string> GenerateUniqueCaseNumberAsync()
@@ -56,7 +58,7 @@ namespace TeacherApp.Controllers
             return false;
         }
 
-        public async Task<IActionResult> Index(string? q, string? className)
+        public async Task<IActionResult> Index(string? q)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             
@@ -75,21 +77,15 @@ namespace TeacherApp.Controllers
                                                     || ((s.LastName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.Email ?? string.Empty).ToLower().Contains(lower)));
             }
-            if (!string.IsNullOrWhiteSpace(className))
-            {
-                studentsQuery = studentsQuery.Where(s => s.ClassName == className);
-            }
 
             var students = await studentsQuery.ToListAsync();
             ViewBag.CanDeleteStudents = UserHasDeleteStudentPermission();
             ViewBag.Query = q;
-            ViewBag.SelectedClass = className;
-            ViewBag.Classes = _context.Students.Select(s => s.ClassName).Distinct().OrderBy(c => c).ToList();
             return View(students);
         }
 
         [HttpGet]
-        public async Task<IActionResult> ExportCsv(string? q, string? className)
+        public async Task<IActionResult> ExportCsv(string? q)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             if (!string.IsNullOrWhiteSpace(q))
@@ -99,15 +95,11 @@ namespace TeacherApp.Controllers
                                                     || ((s.LastName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.Email ?? string.Empty).ToLower().Contains(lower)));
             }
-            if (!string.IsNullOrWhiteSpace(className))
-            {
-                studentsQuery = studentsQuery.Where(s => s.ClassName == className);
-            }
 
             var students = await studentsQuery.ToListAsync();
 
             var sb = new StringBuilder();
-            sb.AppendLine("Id,FirstName,MiddleInitial,LastName,DateOfBirth,Gender,CaseNumber,ClassName,Ethnicity,Email,Eligibility,StudentDisability,AcademicNeed,FirstEnrollmentDate,DateOfFirstProjectService,CollegeGradeLevelEntryIntoProject,EnrollmentStatusInAcademicYearFirstServed,StudentCohortYear,ParticipantStatusDuringAcademicYearBeingReported,EnrollmentStatusAtEndOfAcademicYear,AcademicStanding,CumulativeGPA,CollegeGradeLevelAtBeginningOfAcademicYear,CollegeGradeLevelAtEndOfAcademicYear,DateOfLastProjectService,ReasonForWithdrawalOrNotReturning,Transfers,UndergraduateDegreeCertificateCompletedAtGranteeInstitution,DateOfUndergraduateDegreeCertificate,FieldOfStudyDegreeCertificateEarned,PersistenceStatusAtBeginningOfAcademicYear,AmountOfFinancialAidReceived,AmountOfSSSGrantAidAwarded,ParticipantNameChange");
+            sb.AppendLine("Id,FirstName,MiddleInitial,LastName,DateOfBirth,Gender,CaseNumber,Ethnicity,Email,Eligibility,StudentDisability,AcademicNeed,FirstEnrollmentDate,DateOfFirstProjectService,CollegeGradeLevelEntryIntoProject,EnrollmentStatusInAcademicYearFirstServed,StudentCohortYear,ParticipantStatusDuringAcademicYearBeingReported,EnrollmentStatusAtEndOfAcademicYear,AcademicStanding,CumulativeGPA,CollegeGradeLevelAtBeginningOfAcademicYear,CollegeGradeLevelAtEndOfAcademicYear,DateOfLastProjectService,ReasonForWithdrawalOrNotReturning,Transfers,UndergraduateDegreeCertificateCompletedAtGranteeInstitution,DateOfUndergraduateDegreeCertificate,FieldOfStudyDegreeCertificateEarned,PersistenceStatusAtBeginningOfAcademicYear,AmountOfFinancialAidReceived,AmountOfSSSGrantAidAwarded,ParticipantNameChange");
             foreach (var s in students)
             {
                 // Escape quotes and commas by wrapping fields in double quotes and escaping existing quotes
@@ -116,8 +108,13 @@ namespace TeacherApp.Controllers
                     if (value == null) return string.Empty;
                     return '"' + value.Replace("\"", "\"\"") + '"';
                 }
+                
+                string FormatDate(DateTime? date)
+                {
+                    return date?.ToString("MM/dd/yyyy") ?? "00/00/0000";
+                }
 
-                sb.AppendLine($"{s.Id},{Escape(s.FirstName)},{Escape(s.MiddleInitial)},{Escape(s.LastName)},{Escape(s.DateOfBirth?.ToString("MM/dd/yyyy"))},{Escape(s.Gender)},{Escape(s.CaseNumber)},{Escape(s.ClassName)},{Escape(s.Ethnicity)},{Escape(s.Email)},{Escape(s.Eligibility)},{Escape(s.StudentDisability)},{Escape(s.AcademicNeed)},{Escape(s.FirstEnrollmentDate?.ToString("MM/dd/yyyy"))},{Escape(s.DateOfFirstProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.CollegeGradeLevelEntryIntoProject)},{Escape(s.EnrollmentStatusInAcademicYearFirstServed)},{Escape(s.StudentCohortYear)},{Escape(s.ParticipantStatusDuringAcademicYearBeingReported)},{Escape(s.EnrollmentStatusAtEndOfAcademicYear)},{Escape(s.AcademicStanding)},{Escape(s.CumulativeGPA?.ToString())},{Escape(s.CollegeGradeLevelAtBeginningOfAcademicYear)},{Escape(s.CollegeGradeLevelAtEndOfAcademicYear)},{Escape(s.DateOfLastProjectService?.ToString("MM/dd/yyyy"))},{Escape(s.ReasonForWithdrawalOrNotReturning)},{Escape(s.Transfers)},{Escape(s.UndergraduateDegreeCertificateCompletedAtGranteeInstitution)},{Escape(s.DateOfUndergraduateDegreeCertificate?.ToString("MM/dd/yyyy"))},{Escape(s.FieldOfStudyDegreeCertificateEarned)},{Escape(s.PersistenceStatusAtBeginningOfAcademicYear)},{Escape(s.AmountOfFinancialAidReceived?.ToString())},{Escape(s.AmountOfSSSGrantAidAwarded?.ToString())},{Escape(s.ParticipantNameChange)}");
+                sb.AppendLine($"{s.Id},{Escape(s.FirstName)},{Escape(s.MiddleInitial)},{Escape(s.LastName)},{Escape(FormatDate(s.DateOfBirth))},{Escape(s.Gender)},{Escape(s.CaseNumber)},{Escape(s.Ethnicity)},{Escape(s.Email)},{Escape(s.Eligibility)},{Escape(s.StudentDisability)},{Escape(s.AcademicNeed)},{Escape(FormatDate(s.FirstEnrollmentDate))},{Escape(FormatDate(s.DateOfFirstProjectService))},{Escape(s.CollegeGradeLevelEntryIntoProject)},{Escape(s.EnrollmentStatusInAcademicYearFirstServed)},{Escape(s.StudentCohortYear)},{Escape(s.ParticipantStatusDuringAcademicYearBeingReported)},{Escape(s.EnrollmentStatusAtEndOfAcademicYear)},{Escape(s.AcademicStanding)},{Escape(s.CumulativeGPA?.ToString())},{Escape(s.CollegeGradeLevelAtBeginningOfAcademicYear)},{Escape(s.CollegeGradeLevelAtEndOfAcademicYear)},{Escape(FormatDate(s.DateOfLastProjectService))},{Escape(s.ReasonForWithdrawalOrNotReturning)},{Escape(s.Transfers)},{Escape(s.UndergraduateDegreeCertificateCompletedAtGranteeInstitution)},{Escape(FormatDate(s.DateOfUndergraduateDegreeCertificate))},{Escape(s.FieldOfStudyDegreeCertificateEarned)},{Escape(s.PersistenceStatusAtBeginningOfAcademicYear)},{Escape(s.AmountOfFinancialAidReceived?.ToString())},{Escape(s.AmountOfSSSGrantAidAwarded?.ToString())},{Escape(s.ParticipantNameChange)}");
             }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
@@ -134,6 +131,10 @@ namespace TeacherApp.Controllers
                 .Include(s => s.StudentClasses)
                 .FirstOrDefaultAsync(s => s.Id == id.Value);
             if (student == null) return NotFound();
+
+            // Audit log - view student record
+            await _auditLog.LogAsync("View", "Student", student.Id, 
+                $"Viewed student record: {student.FirstName} {student.LastName} (Case: {student.CaseNumber})");
 
             return View(student);
         }
@@ -158,6 +159,10 @@ namespace TeacherApp.Controllers
                 // Resize the image
                 student.ProfilePicture = ImageHelper.ResizeImage(imageData);
             }
+
+            // Ensure names are uppercase and trimmed
+            student.FirstName = student.FirstName?.ToUpper().Trim() ?? string.Empty;
+            student.LastName = student.LastName?.ToUpper().Trim() ?? string.Empty;
 
             // record who created the student (if available)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -196,6 +201,11 @@ namespace TeacherApp.Controllers
 
             _context.Students.Add(student);
             await _context.SaveChangesAsync();
+            
+            // Audit log - create student record
+            await _auditLog.LogAsync("Create", "Student", student.Id, 
+                $"Created student record: {student.FirstName} {student.LastName} (Case: {student.CaseNumber})");
+            
             return RedirectToAction(nameof(Index));
         }
 
@@ -206,6 +216,10 @@ namespace TeacherApp.Controllers
 
             var student = await _context.Students.Include(s => s.CreatedByUser).FirstOrDefaultAsync(s => s.Id == id.Value);
             if (student == null) return NotFound();
+
+            // Audit log - access edit form
+            await _auditLog.LogAsync("AccessEdit", "Student", student.Id, 
+                $"Accessed edit form for student: {student.FirstName} {student.LastName} (Case: {student.CaseNumber})");
 
             return View(student);
         }
@@ -218,6 +232,10 @@ namespace TeacherApp.Controllers
 
             try
             {
+                // Ensure names are uppercase and trimmed
+                student.FirstName = student.FirstName?.ToUpper().Trim() ?? string.Empty;
+                student.LastName = student.LastName?.ToUpper().Trim() ?? string.Empty;
+
                 // preserve CreatedByUserId and CaseNumber if not provided
                 var existing = await _context.Students.AsNoTracking().FirstOrDefaultAsync(s => s.Id == id);
                 if (existing != null)
@@ -246,6 +264,11 @@ namespace TeacherApp.Controllers
 
                 _context.Students.Update(student);
                 await _context.SaveChangesAsync();
+                
+                // Audit log - update student record
+                await _auditLog.LogAsync("Update", "Student", student.Id, 
+                    $"Updated student record: {student.FirstName} {student.LastName} (Case: {student.CaseNumber})");
+                
                 return RedirectToAction(nameof(Details), new { id = student.Id });
             }
             catch (DbUpdateConcurrencyException)
@@ -284,6 +307,10 @@ namespace TeacherApp.Controllers
             var student = await _context.Students.FindAsync(id);
             if (student != null)
             {
+                // Audit log - delete student record
+                await _auditLog.LogAsync("Delete", "Student", student.Id, 
+                    $"Deleted student record: {student.FirstName} {student.LastName} (Case: {student.CaseNumber})");
+                
                 _context.Students.Remove(student);
                 await _context.SaveChangesAsync();
             }

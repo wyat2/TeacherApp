@@ -64,9 +64,27 @@ body{
 }
 
 /* Forms */
-.form-control:focus{
+.form-control, .form-select{
+  border: 2px solid #d0d7de;
+  background-color: #ffffff;
+  transition: all 0.2s ease;
+}
+.form-control:focus, .form-select:focus{
   border-color:var(--brand-blue-500);
-  box-shadow:0 0 0 .15rem rgba(45,156,219,0.15);
+  box-shadow:0 0 0 .25rem rgba(45,156,219,0.2);
+  background-color: #ffffff;
+}
+.form-control:hover:not(:focus), .form-select:hover:not(:focus){
+  border-color: #9ca3af;
+}
+/* Invalid state */
+.form-control.is-invalid, .form-select.is-invalid{
+  border-color: #dc3545;
+  border-width: 2px;
+}
+/* Textareas */
+textarea.form-control{
+  min-height: 100px;
 }
 
 /* Footer */

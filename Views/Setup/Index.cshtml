@@ -87,6 +87,13 @@
             border-radius: 5px;
             margin-bottom: 20px;
         }
+        #setup-req-list li {
+            transition: all 0.3s ease;
+        }
+        #setup-req-list li.valid {
+            color: #28a745;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -117,9 +124,22 @@
 
             <div class="mb-3">
                 <label asp-for="AdminPassword" class="form-label">Password</label>
-                <input asp-for="AdminPassword" type="password" class="form-control" placeholder="Enter a strong password" />
+                <input asp-for="AdminPassword" type="password" class="form-control" id="setup-password" placeholder="Enter a strong password" />
                 <span asp-validation-for="AdminPassword" class="text-danger small d-block mt-1"></span>
-                <small class="text-muted">Minimum 8 characters recommended.</small>
+                <div class="alert alert-warning mt-2 py-2 px-3" id="setup-requirements">
+                    <strong>⚠️ Password Requirements:</strong>
+                    <ul class="mb-0 mt-1" style="font-size: 12px; list-style: none; padding-left: 0;" id="setup-req-list">
+                        <li id="setup-length"><span class="setup-icon">○</span> 12+ characters</li>
+                        <li id="setup-upper"><span class="setup-icon">○</span> Uppercase letter</li>
+                        <li id="setup-lower"><span class="setup-icon">○</span> Lowercase letter</li>
+                        <li id="setup-digit"><span class="setup-icon">○</span> Digit (0-9)</li>
+                        <li id="setup-special"><span class="setup-icon">○</span> Special character (!@@#$%)</li>
+                    </ul>
+                    <div class="mt-2">
+                        <small id="setup-strength" class="fw-bold">Password strength: <span class="text-muted">Not entered</span></small>
+                    </div>
+                    <div class="mt-1"><strong>Example:</strong> AdminP@ss2026!</div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -142,6 +162,57 @@
 
             <button type="submit" class="btn btn-setup">Complete Setup</button>
         </form>
+        
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('setup-password');
+            const strengthSpan = document.getElementById('setup-strength');
+            
+            if (passwordInput) {
+                passwordInput.addEventListener('input', function() {
+                    const password = this.value;
+                    
+                    const hasLength = password.length >= 12;
+                    const hasUpper = /[A-Z]/.test(password);
+                    const hasLower = /[a-z]/.test(password);
+                    const hasDigit = /[0-9]/.test(password);
+                    const hasSpecial = /[!@@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]/.test(password);
+                    
+                    updateReq('setup-length', hasLength);
+                    updateReq('setup-upper', hasUpper);
+                    updateReq('setup-lower', hasLower);
+                    updateReq('setup-digit', hasDigit);
+                    updateReq('setup-special', hasSpecial);
+                    
+                    const count = [hasLength, hasUpper, hasLower, hasDigit, hasSpecial].filter(Boolean).length;
+                    
+                    if (password.length === 0) {
+                        strengthSpan.innerHTML = 'Password strength: <span class=\"text-muted\">Not entered</span>';
+                    } else if (count === 5) {
+                        strengthSpan.innerHTML = 'Password strength: <span class=\"text-success\">✓ Strong</span>';
+                    } else if (count >= 3) {
+                        strengthSpan.innerHTML = 'Password strength: <span class=\"text-warning\">Medium (' + count + '/5)</span>';
+                    } else {
+                        strengthSpan.innerHTML = 'Password strength: <span class=\"text-danger\">Weak (' + count + '/5)</span>';
+                    }
+                });
+            }
+            
+            function updateReq(id, valid) {
+                const el = document.getElementById(id);
+                if (el) {
+                    const icon = el.querySelector('.setup-icon');
+                    if (valid) {
+                        el.classList.add('valid');
+                        if (icon) icon.textContent = '✓';
+                    } else {
+                        el.classList.remove('valid');
+                        if (icon) icon.textContent = '○';
+                    }
+                }
+            }
+        });
+        </script>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

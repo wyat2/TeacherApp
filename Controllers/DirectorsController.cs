@@ -312,7 +312,18 @@ namespace TeacherApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError(string.Empty, "Email and password are required.");
+                if (string.IsNullOrWhiteSpace(email))
+                    ModelState.AddModelError("email", "Email is required.");
+                if (string.IsNullOrWhiteSpace(password))
+                    ModelState.AddModelError("password", "Password is required.");
+                    
+                ViewBag.Email = email;
+                ViewBag.FirstName = firstName;
+                ViewBag.MiddleInitial = middleInitial;
+                ViewBag.LastName = lastName;
+                ViewBag.PhoneNumber = phoneNumber;
+                ViewBag.IsProjectDirector = isProjectDirector;
+                ViewBag.IsDataEntryPerson = isDataEntryPerson;
                 return View();
             }
 
@@ -321,12 +332,55 @@ namespace TeacherApp.Controllers
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, "Director");
-                return RedirectToAction(nameof(Index));
+                
+                // Clear Project Director flag from other directors if this user is being set as Project Director
+                if (isProjectDirector)
+                {
+                    var directors = await _userManager.GetUsersInRoleAsync("Director");
+                    foreach (var d in directors)
+                    {
+                        if (d.Id != user.Id && d.IsProjectDirector)
+                        {
+                            d.IsProjectDirector = false;
+                            await _userManager.UpdateAsync(d);
+                        }
+                    }
+                }
+                
+                // Clear Data Entry Person flag from other directors if this user is being set as Data Entry Person
+                if (isDataEntryPerson)
+                {
+                    var directors = await _userManager.GetUsersInRoleAsync("Director");
+                    foreach (var d in directors)
+                    {
+                        if (d.Id != user.Id && d.IsDataEntryPerson)
+                        {
+                            d.IsDataEntryPerson = false;
+                            await _userManager.UpdateAsync(d);
+                        }
+                    }
+                }
+                
+                return Redirect(Url.Action(nameof(Index)) + "#director");
             }
 
             foreach (var err in result.Errors)
-                ModelState.AddModelError(string.Empty, err.Description);
+            {
+                if (err.Code.Contains("Password"))
+                    ModelState.AddModelError("password", err.Description);
+                else if (err.Code.Contains("Email") || err.Code.Contains("UserName"))
+                    ModelState.AddModelError("email", err.Description);
+                else
+                    ModelState.AddModelError(string.Empty, err.Description);
+            }
 
+            ViewBag.Email = email;
+            ViewBag.FirstName = firstName;
+            ViewBag.MiddleInitial = middleInitial;
+            ViewBag.LastName = lastName;
+            ViewBag.PhoneNumber = phoneNumber;
+            ViewBag.IsProjectDirector = isProjectDirector;
+            ViewBag.IsDataEntryPerson = isDataEntryPerson;
             return View();
         }
 
@@ -354,12 +408,40 @@ namespace TeacherApp.Controllers
             user.IsProjectDirector = isProjectDirector;
             user.IsDataEntryPerson = isDataEntryPerson;
 
+            // Clear Project Director flag from other directors if this user is being set as Project Director
+            if (isProjectDirector)
+            {
+                var directors = await _userManager.GetUsersInRoleAsync("Director");
+                foreach (var d in directors)
+                {
+                    if (d.Id != user.Id && d.IsProjectDirector)
+                    {
+                        d.IsProjectDirector = false;
+                        await _userManager.UpdateAsync(d);
+                    }
+                }
+            }
+            
+            // Clear Data Entry Person flag from other directors if this user is being set as Data Entry Person
+            if (isDataEntryPerson)
+            {
+                var directors = await _userManager.GetUsersInRoleAsync("Director");
+                foreach (var d in directors)
+                {
+                    if (d.Id != user.Id && d.IsDataEntryPerson)
+                    {
+                        d.IsDataEntryPerson = false;
+                        await _userManager.UpdateAsync(d);
+                    }
+                }
+            }
+
             // Primary handled by dedicated action or checkbox in the Index tab; keep existing behavior here
 
             var result = await _userManager.UpdateAsync(user);
             if (result.Succeeded)
             {
-                return RedirectToAction(nameof(Index));
+                return Redirect(Url.Action(nameof(Index)) + "#director");
             }
 
             foreach (var err in result.Errors)

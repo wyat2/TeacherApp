@@ -4,6 +4,21 @@
 }
 
 <h2>Register</h2>
+
+<div class="alert alert-warning mb-4">
+    <h5 class="alert-heading"><i class="bi bi-shield-lock"></i> Password Requirements</h5>
+    <p class="mb-2">To protect student data (FERPA compliance), your password must meet these requirements:</p>
+    <ul id="password-requirements" class="mb-0">
+        <li id="req-length"><i class="bi bi-circle"></i> <strong>At least 12 characters long</strong></li>
+        <li id="req-uppercase"><i class="bi bi-circle"></i> Contains <strong>uppercase</strong> letters (A-Z)</li>
+        <li id="req-lowercase"><i class="bi bi-circle"></i> Contains <strong>lowercase</strong> letters (a-z)</li>
+        <li id="req-number"><i class="bi bi-circle"></i> Contains <strong>numbers</strong> (0-9)</li>
+        <li id="req-special"><i class="bi bi-circle"></i> Contains <strong>special characters</strong> (!@@#$%^&amp;*)</li>
+        <li id="req-unique"><i class="bi bi-circle"></i> At least <strong>4 unique characters</strong></li>
+    </ul>
+    <p class="mb-0 mt-2"><small><strong>Example:</strong> MyP@ssw0rd2026!</small></p>
+</div>
+
 <form asp-action="Register" method="post">
     <div class="mb-3">
         <label asp-for="Email" class="form-label"></label>
@@ -12,13 +27,91 @@
     </div>
     <div class="mb-3">
         <label asp-for="Password" class="form-label"></label>
-        <input asp-for="Password" class="form-control" />
+        <input asp-for="Password" type="password" class="form-control" id="password-input" />
         <span asp-validation-for="Password" class="text-danger"></span>
+        <div class="form-text">
+            <small id="password-strength" class="text-muted">Enter a password to see strength indicator</small>
+        </div>
     </div>
     <div class="mb-3">
         <label asp-for="ConfirmPassword" class="form-label"></label>
-        <input asp-for="ConfirmPassword" class="form-control" />
+        <input asp-for="ConfirmPassword" type="password" class="form-control" />
         <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
     </div>
-    <button class="btn btn-primary">Register</button>
+    <button class="btn btn-primary" id="register-btn">Register</button>
 </form>
+
+<style>
+    #password-requirements li {
+        transition: all 0.3s ease;
+    }
+    #password-requirements li i {
+        color: #6c757d;
+        transition: color 0.3s ease;
+    }
+    #password-requirements li.valid {
+        color: #28a745;
+        font-weight: 500;
+    }
+    #password-requirements li.valid i {
+        color: #28a745 !important;
+    }
+    #password-requirements li.valid i::before {
+        content: "\f26b"; /* bi-check-circle-fill */
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.getElementById('password-input');
+    const registerBtn = document.getElementById('register-btn');
+    const strengthIndicator = document.getElementById('password-strength');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            
+            // Check each requirement
+            const hasLength = password.length >= 12;
+            const hasUppercase = /[A-Z]/.test(password);
+            const hasLowercase = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]/.test(password);
+            const uniqueChars = new Set(password).size >= 4;
+            
+            // Update UI
+            updateRequirement('req-length', hasLength);
+            updateRequirement('req-uppercase', hasUppercase);
+            updateRequirement('req-lowercase', hasLowercase);
+            updateRequirement('req-number', hasNumber);
+            updateRequirement('req-special', hasSpecial);
+            updateRequirement('req-unique', uniqueChars);
+            
+            // Update strength indicator
+            const validCount = [hasLength, hasUppercase, hasLowercase, hasNumber, hasSpecial, uniqueChars].filter(Boolean).length;
+            
+            if (password.length === 0) {
+                strengthIndicator.textContent = 'Enter a password to see strength indicator';
+                strengthIndicator.className = 'text-muted';
+            } else if (validCount === 6) {
+                strengthIndicator.textContent = '✓ Password meets all requirements!';
+                strengthIndicator.className = 'text-success fw-bold';
+            } else {
+                strengthIndicator.textContent = `${validCount}/6 requirements met`;
+                strengthIndicator.className = validCount >= 4 ? 'text-warning' : 'text-danger';
+            }
+        });
+    }
+    
+    function updateRequirement(id, isValid) {
+        const element = document.getElementById(id);
+        if (element) {
+            if (isValid) {
+                element.classList.add('valid');
+            } else {
+                element.classList.remove('valid');
+            }
+        }
+    }
+});
+</script>

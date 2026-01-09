@@ -91,27 +91,29 @@
 
 <div class="tab-content mb-4">
     <div class="tab-pane fade show active" id="school" role="tabpanel">
-        <form method="post" asp-action="SaveSchoolInfo">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
-            <div class="row mb-2">
-                <div class="col-md-12">
-                    <label class="form-label">School Name</label>
-                    <input type="text" name="schoolName" class="form-control form-control-sm" value="@info.SchoolName" />
+        <div style="max-width: 800px;">
+            <form method="post" asp-action="SaveSchoolInfo">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="currentBatchYear" value="@selectedBatchYear" />
+                <div class="row g-2 mb-2">
+                    <div class="col-md-12">
+                        <label class="form-label small mb-1">School Name</label>
+                        <input type="text" name="schoolName" class="form-control form-control-sm" value="@info.SchoolName" />
+                    </div>
                 </div>
-            </div>
-            <div class="row mb-2">
-                <div class="col-md-8">
-                    <label class="form-label">Address</label>
-                    <input type="text" name="address" class="form-control form-control-sm" value="@info.Address" />
+                <div class="row g-2 mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small mb-1">Address</label>
+                        <input type="text" name="address" class="form-control form-control-sm" value="@info.Address" />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small mb-1">Telephone number</label>
+                        <input type="text" name="schoolPhone" class="form-control form-control-sm" value="@info.SchoolPhone" />
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">Telephone number</label>
-                    <input type="text" name="schoolPhone" class="form-control form-control-sm" value="@info.SchoolPhone" />
-                </div>
-            </div>
-            <button class="btn btn-primary btn-sm" type="submit">Save School Info</button>
-        </form>
+                <button class="btn btn-primary btn-sm" type="submit">Save School Info</button>
+            </form>
+        </div>
     </div>
 
     <div class="tab-pane fade" id="director" role="tabpanel">
@@ -240,6 +242,19 @@
                         return false;
                     }
                 });
+            }
+            
+            // Handle anchor links to open specific tabs
+            if (window.location.hash) {
+                var hash = window.location.hash;
+                if (hash === '#director' || hash === '#school' || hash === '#grant') {
+                    var tabId = hash.substring(1);
+                    var tabButton = document.getElementById(tabId + '-tab');
+                    if (tabButton) {
+                        var tab = new bootstrap.Tab(tabButton);
+                        tab.show();
+                    }
+                }
             }
         });
     </script>

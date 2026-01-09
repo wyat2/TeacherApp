@@ -9,29 +9,19 @@
     <input name="q" value="@ViewBag.Query" placeholder="Search name or email" class="form-control" />
   </div>
   <div class="col-auto">
-    <select name="className" class="form-select">
-      <option value="">All Classes</option>
-      @foreach (var c in ViewBag.Classes ?? new List<string>())
-      {
-        <option value="@c" selected="@(ViewBag.SelectedClass == c)">@c</option>
-      }
-    </select>
-  </div>
-  <div class="col-auto">
     <button class="btn btn-outline-primary" type="submit">Search</button>
     <a class="btn btn-outline-secondary ms-1" href="/Students">Clear</a>
   </div>
 </form>
 <p>
   <a class="btn btn-primary" href="/Students/Create">Add Student</a>
-  <a class="btn btn-secondary ms-2" href="/Students/ExportCsv?q=@ViewBag.Query&className=@ViewBag.SelectedClass">Export CSV</a>
+  <a class="btn btn-secondary ms-2" href="/Students/ExportCsv?q=@ViewBag.Query">Export CSV</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>Name</th>
             <th>Case Number</th>
-            <th>Class</th>
             <th>Academic Standing</th>
             <th>Actions</th>
         </tr>
@@ -42,7 +32,6 @@
             <tr>
                 <td>@(s.FirstName) @(string.IsNullOrEmpty(s.MiddleInitial) ? "" : s.MiddleInitial + ". ")@(s.LastName)</td>
                 <td>@s.CaseNumber</td>
-                <td>@s.ClassName</td>
                 <td>@(string.IsNullOrEmpty(s.AcademicStanding) ? "-" : s.AcademicStanding)</td>
                 <td>
                     <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@s.Id">Details</a>

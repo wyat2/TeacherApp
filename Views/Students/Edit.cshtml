@@ -4,326 +4,421 @@
 }
 
 <div class="container-fluid px-0">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-        <h2 class="mb-2 mb-md-0">Edit Student</h2>
-    </div>
+    <h2 class="mb-3">Edit Student</h2>
 
-    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> Please correct the following errors:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach (var modelState in ViewData.ModelState)
+                {
+                    foreach (var error in modelState.Value.Errors)
+                    {
+                        <li><strong>@modelState.Key:</strong> @error.ErrorMessage</li>
+                    }
+                }
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <form asp-action="Edit" method="post" enctype="multipart/form-data" id="studentForm">
         <input type="hidden" asp-for="Id" />
         
-        <!-- Basic Information Section -->
-        <div class="card mb-4 shadow-sm">
+        <!-- Profile Picture Section (Top) -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-body">
+                <div class="text-center">
+                    @if (Model.ProfilePicture != null && Model.ProfilePicture.Length > 0)
+                    {
+                        <img src="@Url.Action("GetProfilePicture", "Students", new { id = Model.Id })" 
+                             alt="Current Profile Picture" 
+                             class="rounded-circle img-thumbnail mb-2" 
+                             style="width: 200px; height: 200px; object-fit: cover;" />
+                    }
+                    else
+                    {
+                        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-2" 
+                             style="width: 200px; height: 200px; border: 2px solid #dee2e6;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="#6c757d" class="bi bi-person" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                            </svg>
+                        </div>
+                    }
+                    <div>
+                        <label class="form-label fw-bold">Profile Picture</label>
+                        <input type="file" name="profilePicture" accept="image/*" class="form-control" style="max-width: 400px; margin: 0 auto;" />
+                        <small class="form-text text-muted">Optional - will be resized to 200x200px</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Basic Information Card -->
+        <div class="card mb-3 shadow-sm">
             <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">Basic Information</h4>
+                <h5 class="mb-0"><i class="bi bi-person-badge"></i> Basic Information</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    <div class="col-12 text-center mb-3">
-                        @if (Model.ProfilePicture != null && Model.ProfilePicture.Length > 0)
-                        {
-                            <img src="@Url.Action("GetProfilePicture", "Students", new { id = Model.Id })" 
-                                 alt="Current Profile Picture" 
-                                 class="rounded-circle img-thumbnail mb-2" 
-                                 style="width: 200px; height: 200px; object-fit: cover;" />
-                        }
-                        else
-                        {
-                            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mb-2" 
-                                 style="width: 200px; height: 200px; border: 2px solid #dee2e6;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="#6c757d" class="bi bi-person" viewBox="0 0 16 16">
-                                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-                                </svg>
-                            </div>
-                        }
-                        <div>
-                            <input type="file" name="profilePicture" accept="image/*" class="form-control" style="max-width: 400px; margin: 0 auto;" />
-                            <small class="form-text text-muted">Upload a new profile picture (will be automatically resized to 200x200px)</small>
-                        </div>
-                    </div>
-                    
                     <div class="col-12 col-md-6">
-                        <label asp-for="FirstName" class="form-label">First Name<sub style="color: red; font-size: 0.7em;">5</sub></label>
-                        <input asp-for="FirstName" class="form-control" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                        <label asp-for="FirstName" class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                        <input asp-for="FirstName" class="form-control @(ViewData.ModelState["FirstName"]?.Errors.Count > 0 ? "is-invalid" : "")" maxlength="9" required />
+                        <span asp-validation-for="FirstName" class="invalid-feedback d-block"></span>
+                        <small class="form-text text-muted">Max 9 chars, uppercase, no spaces (. ' - allowed)</small>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="MiddleInitial" class="form-label">Middle Initial</label>
+                        <input asp-for="MiddleInitial" class="form-control @(ViewData.ModelState["MiddleInitial"]?.Errors.Count > 0 ? "is-invalid" : "")" maxlength="1" />
+                        <span asp-validation-for="MiddleInitial" class="invalid-feedback d-block"></span>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label asp-for="MiddleInitial" class="form-label">Middle Initial<sub style="color: red; font-size: 0.7em;">6</sub></label>
-                        <input asp-for="MiddleInitial" class="form-control" maxlength="1" />
+                        <label asp-for="LastName" class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+                        <input asp-for="LastName" class="form-control @(ViewData.ModelState["LastName"]?.Errors.Count > 0 ? "is-invalid" : "")" maxlength="9" required />
+                        <span asp-validation-for="LastName" class="invalid-feedback d-block"></span>
+                        <small class="form-text text-muted">Max 9 chars, uppercase, no spaces (. ' - allowed)</small>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="LastName" class="form-label">Last Name<sub style="color: red; font-size: 0.7em;">4</sub></label>
-                        <input asp-for="LastName" class="form-control" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="DateOfBirth" class="form-label">Date of Birth</label>
+                        <input asp-for="DateOfBirth" type="date" class="form-control @(ViewData.ModelState["DateOfBirth"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="DateOfBirth" class="invalid-feedback d-block"></span>
                     </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="CaseNumber" class="form-label">Case Number<sub style="color: red; font-size: 0.7em;">3</sub></label>
-                        <input asp-for="CaseNumber" class="form-control" readonly style="background-color: #e9ecef;" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="PRAwardNumber" class="form-label">PR/Award Number<sub style="color: red; font-size: 0.7em;">1</sub></label>
-                        <input asp-for="PRAwardNumber" class="form-control" readonly style="background-color: #e9ecef;" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="BatchYear" class="form-label">Batch Year<sub style="color: red; font-size: 0.7em;">2</sub></label>
-                        <input asp-for="BatchYear" class="form-control" readonly style="background-color: #e9ecef;" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="DateOfBirth" class="form-label">Date of Birth<sub style="color: red; font-size: 0.7em;">7</sub></label>
-                        <input asp-for="DateOfBirth" type="date" class="form-control" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                        <label asp-for="Gender" class="form-label">Gender<sub style="color: red; font-size: 0.7em;">8</sub></label>
-                        <select asp-for="Gender" class="form-select">
+                    <div class="col-12 col-md-3">
+                        <label asp-for="Gender" class="form-label">Gender</label>
+                        <select asp-for="Gender" class="form-select @(ViewData.ModelState["Gender"]?.Errors.Count > 0 ? "is-invalid" : "")">
                             <option value="">-- Select --</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
+                        <span asp-validation-for="Gender" class="invalid-feedback d-block"></span>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label asp-for="ClassName" class="form-label"></label>
-                        <input asp-for="ClassName" class="form-control" />
+                        <label asp-for="Email" class="form-label">Email</label>
+                        <input asp-for="Email" type="email" class="form-control @(ViewData.ModelState["Email"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Ethnicity (select all that apply)</label>
                         <input type="hidden" name="Ethnicity" id="ethnicityHidden" value="@Model.Ethnicity" />
                         <div class="row g-2">
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Ethnicity—Hispanic" id="eth1"><label class="form-check-label" for="eth1">Hispanic/Latino<sub style="color: red; font-size: 0.7em;">9</sub></label></div></div>
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Race—American Indian/Alaskan Native" id="eth5"><label class="form-check-label" for="eth5">American Indian/Alaskan Native <sub style="color: red; font-size: 0.7em;">10</sub></label></div></div>
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Race—Asian" id="eth4"><label class="form-check-label" for="eth4">Asian<sub style="color: red; font-size: 0.7em;">11</sub></label></div></div>
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Race—Black or African American" id="eth3"><label class="form-check-label" for="eth3">Black/African American<sub style="color: red; font-size: 0.7em;">12</sub></label></div></div>
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Race—White" id="eth2"><label class="form-check-label" for="eth2">White<sub style="color: red; font-size: 0.7em;">13</sub></label></div></div>
-                            <div class="col-6 col-md-3"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Race—Native Hawaiian or Other Pacific Islander" id="eth7"><label class="form-check-label" for="eth7">Hawaiian/Pacific Isl.<sub style="color: red; font-size: 0.7em;">14</sub></label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Hispanic/Latino" id="eth1"><label class="form-check-label" for="eth1">Hispanic/Latino</label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="White" id="eth2"><label class="form-check-label" for="eth2">White</label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Black or African American" id="eth3"><label class="form-check-label" for="eth3">Black/African American</label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Asian" id="eth4"><label class="form-check-label" for="eth4">Asian</label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="American Indian" id="eth5"><label class="form-check-label" for="eth5">American Indian</label></div></div>
+                            <div class="col-6 col-md-4"><div class="form-check"><input class="form-check-input ethnicity-check" type="checkbox" value="Native Hawaiian/Pacific Islander" id="eth7"><label class="form-check-label" for="eth7">Hawaiian/Pacific Isl.</label></div></div>
                         </div>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const checkboxes = document.querySelectorAll('.ethnicity-check');
-                                const hidden = document.getElementById('ethnicityHidden');
-                                const currentValue = hidden.value || '';
-                                const values = currentValue.split(',').map(v => v.trim()).filter(v => v);
-                                checkboxes.forEach(cb => {
-                                    if (values.includes(cb.value)) cb.checked = true;
-                                    cb.addEventListener('change', function() {
-                                        const selected = Array.from(document.querySelectorAll('.ethnicity-check:checked')).map(c => c.value);
-                                        hidden.value = selected.join(', ');
-                                    });
-                                });
-                            });
-                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Program Information Card -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-journal-text"></i> Program Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label asp-for="Eligibility" class="form-label">Eligibility</label>
+                        <select asp-for="Eligibility" class="form-select @(ViewData.ModelState["Eligibility"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="1 - Low-Income and First-Generation">1 - Low-Income and First-Generation</option>
+                            <option value="2 - Low-Income only">2 - Low-Income only</option>
+                            <option value="3 - First-Generation only">3 - First-Generation only</option>
+                            <option value="4 - Disabled">4 - Disabled</option>
+                            <option value="5 - Disabled & Low-Income">5 - Disabled & Low-Income</option>
+                            <option value="0 - No response/Unknown">0 - No response/Unknown</option>
+                        </select>
+                        <span asp-validation-for="Eligibility" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="StudentDisability" class="form-label">Student Disability</label>
+                        <select asp-for="StudentDisability" class="form-select @(ViewData.ModelState["StudentDisability"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                        <span asp-validation-for="StudentDisability" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="AcademicNeed" class="form-label">Academic Need</label>
+                        <select asp-for="AcademicNeed" class="form-select @(ViewData.ModelState["AcademicNeed"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="0 - No response/Unknown">0 - No response/Unknown</option>
+                            <option value="1 - Low high school grades">1 - Low high school grades</option>
+                            <option value="2 - Low admission test scores">2 - Low admission test scores</option>
+                            <option value="5 - Predictive indicator">5 - Predictive indicator</option>
+                            <option value="6 - Academic proficient tests">6 - Academic proficient tests</option>
+                            <option value="7 - Low college grades">7 - Low college grades</option>
+                            <option value="8 - High school equivalency">8 - High school equivalency</option>
+                            <option value="9 - Failing grades">9 - Failing grades</option>
+                            <option value="10 - Out of the academic pipeline for 5 or more years">10 - Out of the academic pipeline for 5 or more years</option>
+                            <option value="11 - Other">11 - Other</option>
+                            <option value="12 - Limited English proficiency">12 - Limited English proficiency</option>
+                            <option value="13 - Lack of educational and/or career goals">13 - Lack of educational and/or career goals</option>
+                            <option value="14 - Lack of academic preparedness for college level course work">14 - Lack of academic preparedness for college level course work</option>
+                            <option value="15 - Need for academic support to raise grade(s) in required course(s)/academic major">15 - Need for academic support to raise grade(s) in required course(s)/academic major</option>
+                        </select>
+                        <span asp-validation-for="AcademicNeed" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="FirstEnrollmentDate" class="form-label">First Enrollment Date</label>
+                        <input asp-for="FirstEnrollmentDate" type="date" class="form-control @(ViewData.ModelState["FirstEnrollmentDate"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="FirstEnrollmentDate" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="DateOfFirstProjectService" class="form-label">Date of First Project Service</label>
+                        <input asp-for="DateOfFirstProjectService" type="date" class="form-control @(ViewData.ModelState["DateOfFirstProjectService"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="DateOfFirstProjectService" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="StudentCohortYear" class="form-label">Student Cohort Year</label>
+                        <select asp-for="StudentCohortYear" class="form-select @(ViewData.ModelState["StudentCohortYear"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="18 - 2016-17">18 - 2016-17</option>
+                            <option value="19 - 2017-18">19 - 2017-18</option>
+                            <option value="20 - 2018-19">20 - 2018-19</option>
+                            <option value="21 - 2019-20">21 - 2019-20</option>
+                            <option value="22 - 2020-21">22 - 2020-21</option>
+                            <option value="23 - 2021-22">23 - 2021-22</option>
+                            <option value="24 - 2022-23">24 - 2022-23</option>
+                            <option value="99 - Not applicable">99 - Not applicable</option>
+                        </select>
+                        <span asp-validation-for="StudentCohortYear" class="invalid-feedback d-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Academic Information Card -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Academic Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label asp-for="CollegeGradeLevelEntryIntoProject" class="form-label">Grade Level Entry</label>
+                        <select asp-for="CollegeGradeLevelEntryIntoProject" class="form-select @(ViewData.ModelState["CollegeGradeLevelEntryIntoProject"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="0 - No response/Unknown">0 - No response/Unknown</option>
+                            <option value="1 - 1st yr., never attended">1 - 1st yr., never attended</option>
+                            <option value="2 - 1st yr., attended before">2 - 1st yr., attended before</option>
+                            <option value="3 - 2nd yr./sophomore">3 - 2nd yr./sophomore</option>
+                            <option value="4 - 3rd yr./junior">4 - 3rd yr./junior</option>
+                            <option value="5 - 4th yr./senior">5 - 4th yr./senior</option>
+                            <option value="6 - 5th yr./other undergraduate">6 - 5th yr./other undergraduate</option>
+                        </select>
+                        <span asp-validation-for="CollegeGradeLevelEntryIntoProject" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-label">Grade Level (Beginning)</label>
+                        <select asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-select @(ViewData.ModelState["CollegeGradeLevelAtBeginningOfAcademicYear"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="0 - No response/Unknown">0 - No response/Unknown</option>
+                            <option value="1 - 1st yr., never attended">1 - 1st yr., never attended</option>
+                            <option value="2 - 1st yr., attended before">2 - 1st yr., attended before</option>
+                            <option value="3 - 2nd yr./sophomore">3 - 2nd yr./sophomore</option>
+                            <option value="4 - 3rd yr./junior">4 - 3rd yr./junior</option>
+                            <option value="5 - 4th yr./senior">5 - 4th yr./senior</option>
+                            <option value="6 - 5th yr./other undergraduate">6 - 5th yr./other undergraduate</option>
+                        </select>
+                        <span asp-validation-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-label">Grade Level (End)</label>
+                        <select asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-select @(ViewData.ModelState["CollegeGradeLevelAtEndOfAcademicYear"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="0 - No response/Unknown">0 - No response/Unknown</option>
+                            <option value="1 - 1st yr., never attended">1 - 1st yr., never attended</option>
+                            <option value="2 - 1st yr., attended before">2 - 1st yr., attended before</option>
+                            <option value="3 - 2nd yr./sophomore">3 - 2nd yr./sophomore</option>
+                            <option value="4 - 3rd yr./junior">4 - 3rd yr./junior</option>
+                            <option value="5 - 4th yr./senior">5 - 4th yr./senior</option>
+                            <option value="6 - 5th yr./other undergraduate">6 - 5th yr./other undergraduate</option>
+                        </select>
+                        <span asp-validation-for="CollegeGradeLevelAtEndOfAcademicYear" class="invalid-feedback d-block"></span>
                     </div>
                     <div class="col-12 col-md-6">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+                        <label asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-label">Enrollment Status (First Served)</label>
+                        <input asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-control @(ViewData.ModelState["EnrollmentStatusInAcademicYearFirstServed"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="EnrollmentStatusInAcademicYearFirstServed" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-label">Enrollment Status (End of Year)</label>
+                        <input asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-control @(ViewData.ModelState["EnrollmentStatusAtEndOfAcademicYear"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="EnrollmentStatusAtEndOfAcademicYear" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-label">Participant Status</label>
+                        <input asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-control @(ViewData.ModelState["ParticipantStatusDuringAcademicYearBeingReported"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="ParticipantStatusDuringAcademicYearBeingReported" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="AcademicStanding" class="form-label">Academic Standing</label>
+                        <select asp-for="AcademicStanding" class="form-select @(ViewData.ModelState["AcademicStanding"]?.Errors.Count > 0 ? "is-invalid" : "")">
+                            <option value="">-- Select --</option>
+                            <option value="Freshman">Freshman</option>
+                            <option value="Sophomore">Sophomore</option>
+                            <option value="Junior">Junior</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Graduate Student">Graduate</option>
+                        </select>
+                        <span asp-validation-for="AcademicStanding" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="CumulativeGPA" class="form-label">Cumulative GPA</label>
+                        <input asp-for="CumulativeGPA" type="number" step="0.01" min="0" max="4.0" class="form-control @(ViewData.ModelState["CumulativeGPA"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="CumulativeGPA" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-label">Persistence Status</label>
+                        <input asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-control @(ViewData.ModelState["PersistenceStatusAtBeginningOfAcademicYear"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="PersistenceStatusAtBeginningOfAcademicYear" class="invalid-feedback d-block"></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tabbed Content Section -->
-        <div class="card shadow-sm mb-4">
+        <!-- Completion & Withdrawal Card -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Completion & Withdrawal</h5>
+            </div>
             <div class="card-body">
-                <ul class="nav nav-tabs" id="studentEditTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="program-tab" data-bs-toggle="tab" data-bs-target="#program" type="button" role="tab" aria-controls="program" aria-selected="true">
-                            Program Info
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="academic-tab" data-bs-toggle="tab" data-bs-target="#academic" type="button" role="tab" aria-controls="academic" aria-selected="false">
-                            Academic Info
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="completion-tab" data-bs-toggle="tab" data-bs-target="#completion" type="button" role="tab" aria-controls="completion" aria-selected="false">
-                            Completion & Withdrawal
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="financial-tab" data-bs-toggle="tab" data-bs-target="#financial" type="button" role="tab" aria-controls="financial" aria-selected="false">
-                            Financial Info
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="other-tab" data-bs-toggle="tab" data-bs-target="#other" type="button" role="tab" aria-controls="other" aria-selected="false">
-                            Other Info
-                        </button>
-                    </li>
-                </ul>
-                
-                <div class="tab-content pt-3" id="studentEditTabContent">
-                    <!-- Program Information Tab -->
-                    <div class="tab-pane fade show active" id="program" role="tabpanel" aria-labelledby="program-tab">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label asp-for="Eligibility" class="form-label">Eligibility<sub style="color: red; font-size: 0.7em;">15a</sub></label>
-                                <input asp-for="Eligibility" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="StudentDisability" class="form-label">Student Disability<sub style="color: red; font-size: 0.7em;">15b</sub></label>
-                                <select asp-for="StudentDisability" class="form-select">
-                                    <option value="">-- Select --</option>
-                                    <option value="Yes">Yes</option>
-                                    <option value="No">No</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="AcademicNeed" class="form-label">Academic Need<sub style="color: red; font-size: 0.7em;">16</sub></label>
-                                <input asp-for="AcademicNeed" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="FirstEnrollmentDate" class="form-label">First Enrollment Date<sub style="color: red; font-size: 0.7em;">17</sub></label>
-                                <input asp-for="FirstEnrollmentDate" type="date" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="DateOfFirstProjectService" class="form-label">Date Of First Project Service<sub style="color: red; font-size: 0.7em;">18</sub></label>
-                                <input asp-for="DateOfFirstProjectService" type="date" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="StudentCohortYear" class="form-label">Student Cohort Year<sub style="color: red; font-size: 0.7em;">21</sub></label>
-                                <input asp-for="StudentCohortYear" class="form-control" />
-                            </div>
-                        </div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label asp-for="DateOfLastProjectService" class="form-label">Date of Last Service</label>
+                        <input asp-for="DateOfLastProjectService" type="date" class="form-control @(ViewData.ModelState["DateOfLastProjectService"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="DateOfLastProjectService" class="invalid-feedback d-block"></span>
                     </div>
-
-                    <!-- Academic Information Tab -->
-                    <div class="tab-pane fade" id="academic" role="tabpanel" aria-labelledby="academic-tab">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label asp-for="CollegeGradeLevelEntryIntoProject" class="form-label">College Grade Level (Entry Into Project)<sub style="color: red; font-size: 0.7em;">19</sub></label>
-                                <input asp-for="CollegeGradeLevelEntryIntoProject" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-label">College Grade Level<sub>(at the beginning of the academic year)</sub><sub style="color: red; font-size: 0.7em;">26</sub></label>
-                                <input asp-for="CollegeGradeLevelAtBeginningOfAcademicYear" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-label">College Grade Level<sub>(at the end of the academic year)</sub><sub style="color: red; font-size: 0.7em;">27</sub></label>
-                                <input asp-for="CollegeGradeLevelAtEndOfAcademicYear" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-label">Enrollment Status<sub>(in academic year first served)</sub><sub style="color: red; font-size: 0.7em;">20</sub></label>
-                                <input asp-for="EnrollmentStatusInAcademicYearFirstServed" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-label">Enrollment Status<sub>(at the end of the academic year)</sub><sub style="color: red; font-size: 0.7em;">23</sub></label>
-                                <input asp-for="EnrollmentStatusAtEndOfAcademicYear" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-label">Participant Status<sub>(during academic year being reported)</sub><sub style="color: red; font-size: 0.7em;">22</sub></label>
-                                <input asp-for="ParticipantStatusDuringAcademicYearBeingReported" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="AcademicStanding" class="form-label">Academic Standing <sub style="color: red; font-size: 0.7em;">24</sub></label>
-                                <select asp-for="AcademicStanding" class="form-control">
-                                    <option value="">-- Select Academic Standing --</option>
-                                    <option value="Freshman">Freshman</option>
-                                    <option value="Sophomore">Sophomore</option>
-                                    <option value="Junior">Junior</option>
-                                    <option value="Senior">Senior</option>
-                                    <option value="Graduate Student">Graduate Student</option>
-                                </select>
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="CumulativeGPA" class="form-label">Cumulative GPA<sub style="color: red; font-size: 0.7em;">25</sub></label>
-                                <input asp-for="CumulativeGPA" type="number" step="0.01" min="0" max="4.0" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-label">Persistence Status<sub>(at the beginning of the academic year)</sub><sub style="color: red; font-size: 0.7em;">34</sub></label>
-                                <input asp-for="PersistenceStatusAtBeginningOfAcademicYear" class="form-control" />
-                            </div>
-                        </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="ReasonForWithdrawalOrNotReturning" class="form-label">Reason for Withdrawal</label>
+                        <input asp-for="ReasonForWithdrawalOrNotReturning" class="form-control @(ViewData.ModelState["ReasonForWithdrawalOrNotReturning"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="ReasonForWithdrawalOrNotReturning" class="invalid-feedback d-block"></span>
                     </div>
-
-                    <!-- Completion & Withdrawal Tab -->
-                    <div class="tab-pane fade" id="completion" role="tabpanel" aria-labelledby="completion-tab">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label asp-for="DateOfLastProjectService" class="form-label">Date of Last Project Service<sub style="color: red; font-size: 0.7em;">28</sub></label>
-                                <input asp-for="DateOfLastProjectService" type="date" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="ReasonForWithdrawalOrNotReturning" class="form-label">Reason for Withdrawal or Not Returning <sub style="color: red; font-size: 0.7em;">29</sub></label>
-                                <input asp-for="ReasonForWithdrawalOrNotReturning" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="Transfers" class="form-label">Transfers<sub style="color: red; font-size: 0.7em;">30</sub></label>
-                                <input asp-for="Transfers" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-label">Undergraduate Degree/Certificate Completed at Grantee Institution<sub style="color: red; font-size: 0.7em;">31</sub></label>
-                                <input asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="DateOfUndergraduateDegreeCertificate" class="form-label">Date of Undergraduate Degree/Certificate<sub style="color: red; font-size: 0.7em;">32</sub></label>
-                                <input asp-for="DateOfUndergraduateDegreeCertificate" type="date" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="FieldOfStudyDegreeCertificateEarned" class="form-label">Field of Study Degree/Certificate Earned<sub style="color: red; font-size: 0.7em;">33</sub></label>
-                                <input asp-for="FieldOfStudyDegreeCertificateEarned" class="form-control" />
-                            </div>
-                        </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="Transfers" class="form-label">Transfers</label>
+                        <input asp-for="Transfers" class="form-control @(ViewData.ModelState["Transfers"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="Transfers" class="invalid-feedback d-block"></span>
                     </div>
-
-                    <!-- Financial Information Tab -->
-                    <div class="tab-pane fade" id="financial" role="tabpanel" aria-labelledby="financial-tab">
-                        <div class="row g-3">
-                            <div class="col-12 col-md-6">
-                                <label asp-for="AmountOfFinancialAidReceived" class="form-label">Amount of Financial Aid Received<sub style="color: red; font-size: 0.7em;">35</sub></label>
-                                <input asp-for="AmountOfFinancialAidReceived" type="number" step="0.01" min="0" class="form-control" />
-                            </div>
-                            <div class="col-12 col-md-6">
-                                <label asp-for="AmountOfSSSGrantAidAwarded" class="form-label">Amount of SSS Grant Aid Awarded<sub style="color: red; font-size: 0.7em;">36</sub></label>
-                                <input asp-for="AmountOfSSSGrantAidAwarded" type="number" step="0.01" min="0" class="form-control" />
-                            </div>
-                        </div>
+                    <div class="col-12 col-md-6">
+                        <label asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-label">Degree/Certificate Completed</label>
+                        <input asp-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="form-control @(ViewData.ModelState["UndergraduateDegreeCertificateCompletedAtGranteeInstitution"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="UndergraduateDegreeCertificateCompletedAtGranteeInstitution" class="invalid-feedback d-block"></span>
                     </div>
-
-                    <!-- Other Information Tab -->
-                    <div class="tab-pane fade" id="other" role="tabpanel" aria-labelledby="other-tab">
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label asp-for="ParticipantNameChange" class="form-label">Participant Name Change<sub style="color: red; font-size: 0.7em;">37</sub></label>
-                                <input asp-for="ParticipantNameChange" class="form-control" />
-                            </div>
-                        </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="DateOfUndergraduateDegreeCertificate" class="form-label">Degree/Cert Date</label>
+                        <input asp-for="DateOfUndergraduateDegreeCertificate" type="date" class="form-control @(ViewData.ModelState["DateOfUndergraduateDegreeCertificate"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="DateOfUndergraduateDegreeCertificate" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label asp-for="FieldOfStudyDegreeCertificateEarned" class="form-label">Field of Study</label>
+                        <input asp-for="FieldOfStudyDegreeCertificateEarned" class="form-control @(ViewData.ModelState["FieldOfStudyDegreeCertificateEarned"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="FieldOfStudyDegreeCertificateEarned" class="invalid-feedback d-block"></span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mb-4">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
-            <a class="btn btn-secondary ms-2" asp-action="Details" asp-route-id="@Model.Id">Cancel</a>
+        <!-- Financial Information Card -->
+        <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Financial Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label asp-for="AmountOfFinancialAidReceived" class="form-label">Financial Aid Received</label>
+                        <input asp-for="AmountOfFinancialAidReceived" type="number" step="0.01" min="0" class="form-control @(ViewData.ModelState["AmountOfFinancialAidReceived"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="0.00" />
+                        <span asp-validation-for="AmountOfFinancialAidReceived" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="AmountOfSSSGrantAidAwarded" class="form-label">SSS Grant Aid Awarded</label>
+                        <input asp-for="AmountOfSSSGrantAidAwarded" type="number" step="0.01" min="0" class="form-control @(ViewData.ModelState["AmountOfSSSGrantAidAwarded"]?.Errors.Count > 0 ? "is-invalid" : "")" placeholder="0.00" />
+                        <span asp-validation-for="AmountOfSSSGrantAidAwarded" class="invalid-feedback d-block"></span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label asp-for="ParticipantNameChange" class="form-label">Name Change</label>
+                        <input asp-for="ParticipantNameChange" class="form-control @(ViewData.ModelState["ParticipantNameChange"]?.Errors.Count > 0 ? "is-invalid" : "")" />
+                        <span asp-validation-for="ParticipantNameChange" class="invalid-feedback d-block"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3 mb-4">
+            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-check-circle"></i> Save Changes</button>
         </div>
     </form>
 </div>
 
-<style>
-    .nav-tabs .nav-link {
-        color: #495057;
-        font-weight: 500;
-    }
-    
-    .nav-tabs .nav-link.active {
-        color: #0d6efd;
-        font-weight: 600;
-    }
-    
-    .card-header h4 {
-        font-size: 1.25rem;
-    }
-    
-    @@media (max-width: 767.98px) {
-        .nav-tabs {
-            flex-wrap: nowrap;
-            overflow-x: auto;
-            overflow-y: hidden;
-            -webkit-overflow-scrolling: touch;
+<script>
+    // Ethnicity checkboxes handler
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkboxes = document.querySelectorAll('.ethnicity-check');
+        const hidden = document.getElementById('ethnicityHidden');
+        const currentValue = hidden.value || '';
+        const values = currentValue.split(',').map(v => v.trim()).filter(v => v);
+        checkboxes.forEach(cb => {
+            if (values.includes(cb.value)) cb.checked = true;
+            cb.addEventListener('change', function() {
+                const selected = Array.from(document.querySelectorAll('.ethnicity-check:checked')).map(c => c.value);
+                hidden.value = selected.join(', ');
+            });
+        });
+        
+        // Convert FirstName and LastName to uppercase in real-time
+        const firstNameInput = document.getElementById('FirstName');
+        const lastNameInput = document.getElementById('LastName');
+        const middleInitialInput = document.getElementById('MiddleInitial');
+        
+        if (firstNameInput) {
+            firstNameInput.addEventListener('input', function(e) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(start, end);
+            });
         }
         
-        .nav-tabs .nav-link {
-            white-space: nowrap;
+        if (lastNameInput) {
+            lastNameInput.addEventListener('input', function(e) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(start, end);
+            });
         }
-    }
-</style>
+        
+        if (middleInitialInput) {
+            middleInitialInput.addEventListener('input', function(e) {
+                const start = e.target.selectionStart;
+                const end = e.target.selectionEnd;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(start, end);
+            });
+        }
+        
+        // Scroll to first invalid field on page load if validation errors exist
+        const firstInvalid = document.querySelector('.is-invalid');
+        if (firstInvalid) {
+            firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstInvalid.focus();
+            // Add pulse animation to highlight the field
+            firstInvalid.classList.add('border-danger');
+            firstInvalid.style.animation = 'pulse 0.5s 3';
+        }
+    });
+    
+    // Add CSS animation for pulse effect
+    const styleContent = '@@keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(220, 53, 69, 0); } }';
+    const style = document.createElement('style');
+    style.textContent = styleContent;
+    document.head.appendChild(style);
+</script>

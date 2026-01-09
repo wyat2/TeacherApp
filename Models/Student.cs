@@ -1,25 +1,62 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.RegularExpressions;
 
 namespace TeacherApp.Models
 {
+    // Custom validation attribute for student names
+    public class StudentNameAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value == null || string.IsNullOrEmpty(value.ToString()))
+            {
+                return ValidationResult.Success; // Let Required attribute handle empty values
+            }
+
+            var name = value.ToString()!;
+
+            // Check length (0-9 characters)
+            if (name.Length > 9)
+            {
+                return new ValidationResult("Name cannot exceed 9 characters.");
+            }
+
+            // Check for whitespace
+            if (name.Contains(' '))
+            {
+                return new ValidationResult("Name cannot contain spaces.");
+            }
+
+            // Check for uppercase only and allowed special characters (. ' -)
+            if (!Regex.IsMatch(name, @"^[A-Z.'\-]+$"))
+            {
+                return new ValidationResult("Name must be uppercase and can only contain letters, period (.), apostrophe ('), and dash (-).");
+            }
+
+            return ValidationResult.Success;
+        }
+    }
+
     public class Student
     {
         public int Id { get; set; }
 
         [Required]
+        [StudentName]
+        [StringLength(9, ErrorMessage = "First name cannot exceed 9 characters.")]
         public required string FirstName { get; set; }
 
         public string? MiddleInitial { get; set; }
 
         [Required]
+        [StudentName]
+        [StringLength(9, ErrorMessage = "Last name cannot exceed 9 characters.")]
         public required string LastName { get; set; }
 
         public DateTime? DateOfBirth { get; set; }
 
         public string? Gender { get; set; }
-
-        public required string ClassName { get; set; }
 
         [ForeignKey("CreatedByUser")]
         public string? CreatedByUserId { get; set; }

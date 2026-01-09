@@ -2,54 +2,65 @@
     ViewData["Title"] = "Create Director";
 }
 
-<h2>Create Director</h2>
-<form asp-action="Create" method="post">
-    <div class="row mb-2">
-        <div class="col-md-12">
-            <label class="form-label">Email</label>
-            <input name="email" class="form-control form-control-sm" />
+<div style="max-width: 800px;">
+    <h4 class="mb-3">Create Director</h4>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger py-2">
+            <ul class="mb-0 small">
+                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                {
+                    <li>@error.ErrorMessage</li>
+                }
+            </ul>
         </div>
-    </div>
-    <div class="row mb-2">
-        <div class="col-md-5">
-            <label class="form-label">First Name</label>
-            <input name="firstName" class="form-control form-control-sm" />
-        </div>
-        <div class="col-md-2">
-            <label class="form-label">MI</label>
-            <input name="middleInitial" class="form-control form-control-sm" maxlength="1" />
-        </div>
-        <div class="col-md-5">
-            <label class="form-label">Last Name</label>
-            <input name="lastName" class="form-control form-control-sm" />
-        </div>
-    </div>
-    <div class="row mb-2">
-        <div class="col-md-6">
-            <label class="form-label">Password</label>
-            <input name="password" type="password" class="form-control form-control-sm" />
-        </div>
-        <div class="col-md-6">
-            <label class="form-label">Telephone</label>
-            <input name="phoneNumber" class="form-control form-control-sm" />
-        </div>
-    </div>
-    <div class="row mb-2">
-        <div class="col-md-6">
-            <div class="form-check">
-                <input type="checkbox" name="isProjectDirector" class="form-check-input" id="isProjectDirector" value="true" />
-                <label class="form-check-label" for="isProjectDirector">Project Director</label>
+    }
+
+    <form asp-action="Create" method="post">
+        <div class="row g-2 mb-2">
+            <div class="col-md-5">
+                <label class="form-label small mb-1">Email @if (ViewData.ModelState["email"]?.Errors.Count > 0) { <span class="text-danger fw-bold">*</span> }</label>
+                <input name="email" type="email" class="form-control form-control-sm @(ViewData.ModelState["email"]?.Errors.Count > 0 ? "is-invalid" : "")" value="@ViewBag.Email" required />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">First Name</label>
+                <input name="firstName" class="form-control form-control-sm" value="@ViewBag.FirstName" />
+            </div>
+            <div class="col-md-1">
+                <label class="form-label small mb-1">MI</label>
+                <input name="middleInitial" class="form-control form-control-sm" maxlength="1" value="@ViewBag.MiddleInitial" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small mb-1">Last Name</label>
+                <input name="lastName" class="form-control form-control-sm" value="@ViewBag.LastName" />
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="form-check">
-                <input type="checkbox" name="isDataEntryPerson" class="form-check-input" id="isDataEntryPerson" value="true" />
-                <label class="form-check-label" for="isDataEntryPerson">Data Entry Person</label>
+        <div class="row g-2 mb-2">
+            <div class="col-md-6">
+                <label class="form-label small mb-1">Password @if (ViewData.ModelState["password"]?.Errors.Count > 0) { <span class="text-danger fw-bold">*</span> }</label>
+                <input name="password" type="password" class="form-control form-control-sm @(ViewData.ModelState["password"]?.Errors.Count > 0 ? "is-invalid" : "")" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label small mb-1">Telephone</label>
+                <input name="phoneNumber" type="tel" class="form-control form-control-sm" value="@ViewBag.PhoneNumber" />
             </div>
         </div>
-    </div>
-    <button class="btn btn-primary btn-sm">Create Director</button>
-</form>
+        <div class="row g-2 mb-3">
+            <div class="col-12">
+                <div class="form-check form-check-inline me-4">
+                    <input type="checkbox" name="isProjectDirector" class="form-check-input" id="isProjectDirector" value="true" @(ViewBag.IsProjectDirector == true ? "checked" : "") />
+                    <label class="form-check-label small" for="isProjectDirector">Project Director</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input type="checkbox" name="isDataEntryPerson" class="form-check-input" id="isDataEntryPerson" value="true" @(ViewBag.IsDataEntryPerson == true ? "checked" : "") />
+                    <label class="form-check-label small" for="isDataEntryPerson">Data Entry Person</label>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary btn-sm">Create Director</button>
+    </form>
+</div>
 
 @section Scripts {
     <script>

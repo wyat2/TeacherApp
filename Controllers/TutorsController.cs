@@ -98,7 +98,15 @@ namespace TeacherApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
             {
-                ModelState.AddModelError(string.Empty, "Email and password are required.");
+                if (string.IsNullOrWhiteSpace(email))
+                    ModelState.AddModelError("email", "Email is required.");
+                if (string.IsNullOrWhiteSpace(password))
+                    ModelState.AddModelError("password", "Password is required.");
+                    
+                ViewBag.Email = email;
+                ViewBag.FirstName = firstName;
+                ViewBag.LastName = lastName;
+                ViewBag.PhoneNumber = phoneNumber;
                 return View();
             }
 
@@ -111,8 +119,19 @@ namespace TeacherApp.Controllers
             }
 
             foreach (var err in result.Errors)
-                ModelState.AddModelError(string.Empty, err.Description);
+            {
+                if (err.Code.Contains("Password"))
+                    ModelState.AddModelError("password", err.Description);
+                else if (err.Code.Contains("Email") || err.Code.Contains("UserName"))
+                    ModelState.AddModelError("email", err.Description);
+                else
+                    ModelState.AddModelError(string.Empty, err.Description);
+            }
 
+            ViewBag.Email = email;
+            ViewBag.FirstName = firstName;
+            ViewBag.LastName = lastName;
+            ViewBag.PhoneNumber = phoneNumber;
             return View();
         }
 
