@@ -329,6 +329,42 @@ namespace TeacherApp.Data.Migrations
                     b.ToTable("DirectorsPageInfos");
                 });
 
+            modelBuilder.Entity("TeacherApp.Models.Homework", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Score")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StudentClassId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("StudentClassId");
+
+                    b.ToTable("Homework");
+                });
+
             modelBuilder.Entity("TeacherApp.Models.RolePermission", b =>
                 {
                     b.Property<int>("Id")
@@ -531,6 +567,42 @@ namespace TeacherApp.Data.Migrations
                     b.ToTable("StudentClasses");
                 });
 
+            modelBuilder.Entity("TeacherApp.Models.Test", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByUserId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Score")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StudentClassId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("StudentClassId");
+
+                    b.ToTable("Tests");
+                });
+
             modelBuilder.Entity("TeacherApp.Models.TutoringNote", b =>
                 {
                     b.Property<int>("Id")
@@ -614,6 +686,23 @@ namespace TeacherApp.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TeacherApp.Models.Homework", b =>
+                {
+                    b.HasOne("TeacherApp.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("TeacherApp.Models.StudentClass", "StudentClass")
+                        .WithMany("Homework")
+                        .HasForeignKey("StudentClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("StudentClass");
+                });
+
             modelBuilder.Entity("TeacherApp.Models.Student", b =>
                 {
                     b.HasOne("TeacherApp.Models.ApplicationUser", "CreatedByUser")
@@ -632,6 +721,23 @@ namespace TeacherApp.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Student");
+                });
+
+            modelBuilder.Entity("TeacherApp.Models.Test", b =>
+                {
+                    b.HasOne("TeacherApp.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId");
+
+                    b.HasOne("TeacherApp.Models.StudentClass", "StudentClass")
+                        .WithMany("Tests")
+                        .HasForeignKey("StudentClassId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("StudentClass");
                 });
 
             modelBuilder.Entity("TeacherApp.Models.TutoringNote", b =>
@@ -660,6 +766,10 @@ namespace TeacherApp.Data.Migrations
 
             modelBuilder.Entity("TeacherApp.Models.StudentClass", b =>
                 {
+                    b.Navigation("Homework");
+
+                    b.Navigation("Tests");
+
                     b.Navigation("TutoringNotes");
                 });
 #pragma warning restore 612, 618

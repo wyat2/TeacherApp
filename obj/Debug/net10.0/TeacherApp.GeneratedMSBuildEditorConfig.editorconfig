@@ -50,6 +50,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW5zL0luZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/Views/Audit/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQXVkaXQvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/Views/Directors/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvRGlyZWN0b3JzL0NyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
@@ -84,6 +88,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/Views/Reports/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVwb3J0cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/Views/Reports/Results.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUmVwb3J0cy9SZXN1bHRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/Views/Setup/Complete.cshtml]

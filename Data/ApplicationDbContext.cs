@@ -13,6 +13,8 @@ namespace TeacherApp.Data
         public DbSet<Student> Students { get; set; }
         public DbSet<StudentClass> StudentClasses { get; set; }
         public DbSet<TutoringNote> TutoringNotes { get; set; }
+        public DbSet<Homework> Homework { get; set; }
+        public DbSet<Test> Tests { get; set; }
         public DbSet<TeacherApp.Models.RolePermission> RolePermissions { get; set; }
         public DbSet<TeacherApp.Models.DirectorsPageInfo> DirectorsPageInfos { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }

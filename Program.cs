@@ -7,6 +7,19 @@ using TeacherApp.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Check for command-line arguments
+if (args.Contains("--populate-test-data"))
+{
+    // Run test data population and exit
+    var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    
+    using (var context = new ApplicationDbContext(optionsBuilder.Options))
+    {
+        await TeacherApp.PopulateTestData.PopulateAsync(context);
+    }
+    return;
+}
+
 if (args.Contains("--populate-case-numbers"))
 {
     // Run case number population and exit

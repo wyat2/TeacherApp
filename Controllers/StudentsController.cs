@@ -58,7 +58,7 @@ namespace TeacherApp.Controllers
             return false;
         }
 
-        public async Task<IActionResult> Index(string? q)
+        public async Task<IActionResult> Index(string? q, string? standing)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             
@@ -70,17 +70,56 @@ namespace TeacherApp.Controllers
                 studentsQuery = studentsQuery.Where(s => s.BatchYear == currentBatchYear);
             }
             
-            if (!string.IsNullOrWhiteSpace(q))
+            // Check if this is a search or filter request
+            bool isSearch = !string.IsNullOrWhiteSpace(q);
+            bool isStandingFilter = !string.IsNullOrWhiteSpace(standing);
+            
+            if (isSearch)
             {
-                var lower = q.ToLower();
+                var lower = q!.ToLower();
                 studentsQuery = studentsQuery.Where(s => ((s.FirstName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.LastName ?? string.Empty).ToLower().Contains(lower))
                                                     || ((s.Email ?? string.Empty).ToLower().Contains(lower)));
             }
+            
+            if (isStandingFilter)
+            {
+                studentsQuery = studentsQuery.Where(s => s.AcademicStanding == standing);
+            }
 
             var students = await studentsQuery.ToListAsync();
+            
+            // If not searching or filtering or filtering, calculate histogram data for each academic standing
+            if (!isSearch && !isStandingFilter)
+            {
+                var academicStandings = new[] { "Freshman", "Sophomore", "Junior", "Senior", "Graduate Student" };
+                var histogramData = new Dictionary<string, Dictionary<string, int>>();
+                
+                foreach (var standingType in academicStandings)
+                {
+                    var standingStudents = students.Where(s => s.AcademicStanding == standingType).ToList();
+                    var gpaDistribution = new Dictionary<string, int>
+                    {
+                        { "0.0-1.0", standingStudents.Count(s => s.CumulativeGPA >= 0 && s.CumulativeGPA < 1.0m) },
+                        { "1.0-2.0", standingStudents.Count(s => s.CumulativeGPA >= 1.0m && s.CumulativeGPA < 2.0m) },
+                        { "2.0-3.0", standingStudents.Count(s => s.CumulativeGPA >= 2.0m && s.CumulativeGPA < 3.0m) },
+                        { "3.0-4.0", standingStudents.Count(s => s.CumulativeGPA >= 3.0m && s.CumulativeGPA <= 4.0m) }
+                    };
+                    histogramData[standingType] = gpaDistribution;
+                }
+                
+                ViewBag.HistogramData = histogramData;
+                ViewBag.TotalStudentsByStanding = academicStandings.ToDictionary(
+                    standingType => standingType,
+                    standingType => students.Count(s => s.AcademicStanding == standingType)
+                );
+            }
+            
             ViewBag.CanDeleteStudents = UserHasDeleteStudentPermission();
             ViewBag.Query = q;
+            ViewBag.IsSearch = isSearch;
+            ViewBag.Standing = standing;
+            ViewBag.IsStandingFilter = isStandingFilter;
             return View(students);
         }
 
@@ -412,6 +451,10 @@ namespace TeacherApp.Controllers
                 .Include(sc => sc.Student)
                 .Include(sc => sc.TutoringNotes)
                     .ThenInclude(tn => tn.CreatedByUser)
+                .Include(sc => sc.Homework)
+                    .ThenInclude(hw => hw.CreatedByUser)
+                .Include(sc => sc.Tests)
+                    .ThenInclude(t => t.CreatedByUser)
                 .FirstOrDefaultAsync(sc => sc.Id == classId);
 
             if (studentClass == null)
@@ -491,6 +534,230 @@ namespace TeacherApp.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddHomework([FromBody] HomeworkDto dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return Json(new { success = false, message = "Invalid data" });
+                }
+
+                if (string.IsNullOrEmpty(dto.Name))
+                {
+                    return Json(new { success = false, message = "Homework name is required" });
+                }
+
+                // Get current user ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+
+                var homework = new Homework
+                {
+                    StudentClassId = dto.StudentClassId,
+                    Name = dto.Name,
+                    Date = dto.Date,
+                    Score = dto.Score,
+                    CreatedByUserId = userId,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Homework.Add(homework);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class HomeworkDto
+        {
+            public int StudentClassId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public DateTime Date { get; set; }
+            public string? Score { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteHomework(int id)
+        {
+            try
+            {
+                var homework = await _context.Homework.FindAsync(id);
+                if (homework == null)
+                {
+                    return Json(new { success = false, message = "Homework not found" });
+                }
+
+                _context.Homework.Remove(homework);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddTest([FromBody] TestDto dto)
+        {
+            try
+            {
+                if (dto == null)
+                {
+                    return Json(new { success = false, message = "Invalid data" });
+                }
+
+                if (string.IsNullOrEmpty(dto.Name))
+                {
+                    return Json(new { success = false, message = "Test name is required" });
+                }
+
+                // Get current user ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+
+                var test = new Test
+                {
+                    StudentClassId = dto.StudentClassId,
+                    Name = dto.Name,
+                    Date = dto.Date,
+                    Score = dto.Score,
+                    CreatedByUserId = userId,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Tests.Add(test);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class TestDto
+        {
+            public int StudentClassId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public DateTime Date { get; set; }
+            public string? Score { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteTest(int id)
+        {
+            try
+            {
+                var test = await _context.Tests.FindAsync(id);
+                if (test == null)
+                {
+                    return Json(new { success = false, message = "Test not found" });
+                }
+
+                _context.Tests.Remove(test);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateHomework([FromBody] UpdateHomeworkDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.Id == 0)
+                {
+                    return Json(new { success = false, message = "Invalid data" });
+                }
+
+                var homework = await _context.Homework.FindAsync(dto.Id);
+                if (homework == null)
+                {
+                    return Json(new { success = false, message = "Homework not found" });
+                }
+
+                homework.Name = dto.Name;
+                homework.Date = dto.Date;
+                homework.Score = dto.Score;
+
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class UpdateHomeworkDto
+        {
+            public int Id { get; set; }
+            public int StudentClassId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public DateTime Date { get; set; }
+            public string? Score { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateTest([FromBody] UpdateTestDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.Id == 0)
+                {
+                    return Json(new { success = false, message = "Invalid data" });
+                }
+
+                var test = await _context.Tests.FindAsync(dto.Id);
+                if (test == null)
+                {
+                    return Json(new { success = false, message = "Test not found" });
+                }
+
+                test.Name = dto.Name;
+                test.Date = dto.Date;
+                test.Score = dto.Score;
+
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class UpdateTestDto
+        {
+            public int Id { get; set; }
+            public int StudentClassId { get; set; }
+            public string Name { get; set; } = string.Empty;
+            public DateTime Date { get; set; }
+            public string? Score { get; set; }
         }
     }
 }

@@ -17,33 +17,105 @@
   <a class="btn btn-primary" href="/Students/Create">Add Student</a>
   <a class="btn btn-secondary ms-2" href="/Students/ExportCsv?q=@ViewBag.Query">Export CSV</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Case Number</th>
-            <th>Academic Standing</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var s in Model)
-        {
+
+@if (ViewBag.IsSearch == true || ViewBag.IsStandingFilter == true)
+{
+    <!-- Student List View (shown during search or standing filter) -->
+    @if (ViewBag.IsStandingFilter == true)
+    {
+        <div class="alert alert-info">
+            Showing students with Academic Standing: <strong>@ViewBag.Standing</strong>
+            <a href="/Students" class="btn btn-sm btn-outline-secondary ms-2">Show All</a>
+        </div>
+    }
+    <table class="table">
+        <thead>
             <tr>
-                <td>@(s.FirstName) @(string.IsNullOrEmpty(s.MiddleInitial) ? "" : s.MiddleInitial + ". ")@(s.LastName)</td>
-                <td>@s.CaseNumber</td>
-                <td>@(string.IsNullOrEmpty(s.AcademicStanding) ? "-" : s.AcademicStanding)</td>
-                <td>
-                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@s.Id">Details</a>
-                    @if (ViewBag.CanDeleteStudents == true)
-                    {
-                        <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@s.Id" data-name="@($"{s.FirstName} {s.LastName}")">Delete</button>
-                    }
-                </td>
+                <th>Name</th>
+                <th>Case Number</th>
+                <th>Academic Standing</th>
+                <th>Actions</th>
             </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@(s.FirstName) @(string.IsNullOrEmpty(s.MiddleInitial) ? "" : s.MiddleInitial + ". ")@(s.LastName)</td>
+                    <td>@s.CaseNumber</td>
+                    <td>@(string.IsNullOrEmpty(s.AcademicStanding) ? "-" : s.AcademicStanding)</td>
+                    <td>
+                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@s.Id">Details</a>
+                        @if (ViewBag.CanDeleteStudents == true)
+                        {
+                            <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#deleteModal" data-id="@s.Id" data-name="@($"{s.FirstName} {s.LastName}")">Delete</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <!-- Academic Standing Histogram View (default) -->
+    <div class="row g-3">
+        @{
+            var histogramData = ViewBag.HistogramData as Dictionary<string, Dictionary<string, int>>;
+            var totalsByStanding = ViewBag.TotalStudentsByStanding as Dictionary<string, int>;
+            var colors = new Dictionary<string, string>
+            {
+                { "Freshman", "primary" },
+                { "Sophomore", "success" },
+                { "Junior", "warning" },
+                { "Senior", "danger" },
+                { "Graduate Student", "info" }
+            };
         }
-    </tbody>
-</table>
+        
+        @if (histogramData != null && totalsByStanding != null)
+        {
+            foreach (var standing in histogramData.Keys)
+            {
+                var gpaData = histogramData[standing];
+                var total = totalsByStanding[standing];
+                var maxCount = gpaData.Values.Max();
+                var color = colors.ContainsKey(standing) ? colors[standing] : "secondary";
+                
+                <div class="col-12 col-md-6 col-lg-4">
+                    <a href="/Students?standing=@System.Uri.EscapeDataString(standing)" class="text-decoration-none">
+                        <div class="card shadow-sm hover-card" style="cursor: pointer; transition: transform 0.2s;">
+                            <div class="card-header bg-@color text-white">
+                                <h5 class="mb-0">@standing</h5>
+                                <small>Total: @total students</small>
+                            </div>
+                        <div class="card-body">
+                            <h6 class="text-muted mb-3">GPA Distribution</h6>
+                            @foreach (var gpaRange in gpaData.OrderBy(x => x.Key))
+                            {
+                                var count = gpaRange.Value;
+                                var percentage = total > 0 ? (count * 100.0 / total) : 0;
+                                var barWidth = maxCount > 0 ? (count * 100.0 / maxCount) : 0;
+                                
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <small class="text-muted">@gpaRange.Key</small>
+                                        <small><strong>@count</strong> (@percentage.ToString("F1")%)</small>
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-@color" role="progressbar" style="width: @barWidth%" aria-valuenow="@count" aria-valuemin="0" aria-valuemax="@maxCount">
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        }
+    </div>
+}
 
 @if (ViewBag.CanDeleteStudents == true)
 {

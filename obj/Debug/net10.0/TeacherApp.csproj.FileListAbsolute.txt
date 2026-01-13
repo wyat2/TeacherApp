@@ -131,5 +131,6 @@
 /Users/awyatt/Documents/Projects/TRIO program/TeacherApp/bin/Debug/net10.0/build-macos/TeacherApp.app/Contents/MacOS/TeacherApp.runtimeconfig.json
 /Users/awyatt/Documents/Projects/TRIO program/TeacherApp/bin/Debug/net10.0/build-macos/TeacherApp.app/Contents/MacOS/TeacherApp.staticwebassets.endpoints.json
 /Users/awyatt/Documents/Projects/TRIO program/TeacherApp/bin/Debug/net10.0/TeacherApp.staticwebassets.runtime.json
-/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/obj/Debug/net10.0/compressed/buqw6e8lo8-{0}-lul402vtor-lul402vtor.gz
 /Users/awyatt/Documents/Projects/TRIO program/TeacherApp/bin/Debug/net10.0/SixLabors.ImageSharp.dll
+/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/obj/Debug/net10.0/TeacherApp.sourcelink.json
+/Users/awyatt/Documents/Projects/TRIO program/TeacherApp/obj/Debug/net10.0/compressed/buqw6e8lo8-{0}-ckiu04tzte-ckiu04tzte.gz

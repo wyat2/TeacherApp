@@ -29,5 +29,7 @@ namespace TeacherApp.Models
         // Navigation property
         public virtual Student? Student { get; set; }
         public virtual ICollection<TutoringNote> TutoringNotes { get; set; } = new List<TutoringNote>();
+        public virtual ICollection<Homework> Homework { get; set; } = new List<Homework>();
+        public virtual ICollection<Test> Tests { get; set; } = new List<Test>();
     }
 }
