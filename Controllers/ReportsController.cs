@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Data;
+using Microsoft.Data.Sqlite;
 using TeacherApp.Data;
 using TeacherApp.Models;
 
@@ -333,6 +335,113 @@ namespace TeacherApp.Controllers
             
             // Escape quotes by doubling them
             return value.Replace("\"", "\"\"");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExecuteQuery(string sqlQuery)
+        {
+            // Get available batch years for the filter
+            var batchYears = _context.DirectorsPageInfos
+                .Where(d => !string.IsNullOrEmpty(d.BatchYear))
+                .Select(d => d.BatchYear)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToList();
+            
+            ViewBag.AvailableBatchYears = batchYears;
+            ViewBag.CurrentBatchYear = TempData.Peek("CurrentBatchYear") as string;
+            TempData.Keep("CurrentBatchYear");
+
+            // Preserve the query in ViewBag to display it back in the textarea
+            ViewBag.SqlQuery = sqlQuery;
+
+            if (string.IsNullOrWhiteSpace(sqlQuery))
+            {
+                ViewBag.QueryError = "Please enter a SQL query.";
+                return View("Index");
+            }
+
+            // Security check: only allow SELECT queries
+            var trimmedQuery = sqlQuery.Trim().ToUpperInvariant();
+            if (!trimmedQuery.StartsWith("SELECT"))
+            {
+                ViewBag.QueryError = "Only SELECT queries are allowed for security reasons.";
+                ViewBag.SqlQuery = sqlQuery;
+                return View("Index");
+            }
+
+            // Additional security: block certain dangerous keywords
+            var dangerousKeywords = new[] { "DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE", "TRUNCATE", "EXEC", "EXECUTE" };
+            foreach (var keyword in dangerousKeywords)
+            {
+                if (trimmedQuery.Contains(keyword))
+                {
+                    ViewBag.QueryError = $"Query contains forbidden keyword: {keyword}";
+                    ViewBag.SqlQuery = sqlQuery;
+                    return View("Index");
+                }
+            }
+
+            try
+            {
+                var connectionString = _context.Database.GetConnectionString();
+                using var connection = new SqliteConnection(connectionString);
+                await connection.OpenAsync();
+
+                using var command = connection.CreateCommand();
+                command.CommandText = sqlQuery;
+                command.CommandTimeout = 30; // 30 seconds timeout
+
+                using var reader = await command.ExecuteReaderAsync();
+                
+                var html = new StringBuilder();
+                html.AppendLine("<table class='table table-striped table-bordered table-sm'>");
+                
+                // Create header row
+                html.AppendLine("<thead class='table-dark'><tr>");
+                for (int i = 0; i < reader.FieldCount; i++)
+                {
+                    html.Append($"<th>{System.Net.WebUtility.HtmlEncode(reader.GetName(i))}</th>");
+                }
+                html.AppendLine("</tr></thead>");
+                
+                // Create data rows
+                html.AppendLine("<tbody>");
+                int rowCount = 0;
+                int maxRows = 1000; // Limit results to prevent browser overload
+                
+                while (await reader.ReadAsync() && rowCount < maxRows)
+                {
+                    html.AppendLine("<tr>");
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        var value = reader.IsDBNull(i) ? "" : reader.GetValue(i).ToString();
+                        html.Append($"<td>{System.Net.WebUtility.HtmlEncode(value)}</td>");
+                    }
+                    html.AppendLine("</tr>");
+                    rowCount++;
+                }
+                html.AppendLine("</tbody>");
+                html.AppendLine("</table>");
+                
+                if (rowCount >= maxRows)
+                {
+                    html.AppendLine($"<div class='alert alert-warning'>Results limited to {maxRows} rows. Use LIMIT clause to control result size.</div>");
+                }
+                else
+                {
+                    html.AppendLine($"<div class='alert alert-info'>{rowCount} row(s) returned.</div>");
+                }
+
+                ViewBag.QueryResults = html.ToString();
+            }
+            catch (Exception ex)
+            {
+                ViewBag.QueryError = $"Query execution failed: {ex.Message}";
+            }
+
+            return View("Index");
         }
     }
 }

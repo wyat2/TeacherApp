@@ -3,9 +3,22 @@
 }
 
 <div class="container-fluid px-0">
-    <h2 class="mb-4">Generate Reports</h2>
+    <h2 class="mb-4">Reports</h2>
 
-    <div class="card shadow-sm">
+    <!-- Navigation tabs for Reports page -->
+    <ul class="nav nav-tabs mb-3" id="reportsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="generate-reports-tab" data-bs-toggle="tab" data-bs-target="#generate-reports" type="button" role="tab">Generate Reports</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="dashboards-tab" data-bs-toggle="tab" data-bs-target="#dashboards" type="button" role="tab">Dashboards</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Generate Reports Tab -->
+        <div class="tab-pane fade show active" id="generate-reports" role="tabpanel">
+            <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
             <h4 class="mb-0">Filter Options</h4>
         </div>
@@ -137,6 +150,211 @@
             <p class="mt-3 mb-0"><strong>Note:</strong> CSV format includes all fields and is suitable for Excel. PDF format includes summary information in a formatted table.</p>
         </div>
     </div>
+        </div>
+
+        <!-- Dashboards Tab -->
+        <div class="tab-pane fade" id="dashboards" role="tabpanel">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Database Query Dashboard</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Info:</strong> Write SQL queries to explore the database. Use the table reference below for available tables and columns.
+                    </div>
+
+                    <form id="queryForm" asp-action="ExecuteQuery" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label for="sqlQuery" class="form-label fw-bold">SQL Query</label>
+                            <textarea class="form-control" id="sqlQuery" name="sqlQuery" rows="6" 
+                                      placeholder="SELECT * FROM Students WHERE Grade = '5th' LIMIT 10">@(ViewBag.SqlQuery ?? "")</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-play-fill" viewBox="0 0 16 16">
+                                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393"/>
+                            </svg>
+                            Execute Query
+                        </button>
+                    </form>
+
+                    @if (ViewBag.QueryResults != null)
+                    {
+                        <div class="mt-4">
+                            <h5>Query Results</h5>
+                            <div class="table-responsive">
+                                @Html.Raw(ViewBag.QueryResults)
+                            </div>
+                        </div>
+                    }
+
+                    @if (ViewBag.QueryError != null)
+                    {
+                        <div class="alert alert-danger mt-4">
+                            <strong>Error:</strong> @ViewBag.QueryError
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Database Schema Information -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link text-white text-decoration-none w-100 text-start p-0" type="button" data-bs-toggle="collapse" data-bs-target="#tableReferenceCollapse" aria-expanded="false" aria-controls="tableReferenceCollapse">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down me-2" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708"/>
+                            </svg>
+                            Database Tables Reference
+                        </button>
+                    </h5>
+                </div>
+                <div id="tableReferenceCollapse" class="collapse">
+                <div class="card-body">
+                    <div class="accordion" id="schemaAccordion">
+                        <!-- Students Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingStudents">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseStudents">
+                                    <strong>Students</strong> - Student records with demographics and program information
+                                </button>
+                            </h2>
+                            <div id="collapseStudents" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, CaseNumber, FirstName, MiddleName, LastName, Email, PhoneNumber, DateOfBirth, Gender, Ethnicity, HispanicLatino, Eligibility, FirstEnrollmentDate, ExpectedGraduationDate, AcademicStanding, GPA, TotalCredits, CreditsThisSemester, BatchYear, CreatedByUserId</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AspNetUsers Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUsers">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUsers">
+                                    <strong>AspNetUsers</strong> - User accounts (Admins, Directors, Tutors)
+                                </button>
+                            </h2>
+                            <div id="collapseUsers" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, UserName, Email, FirstName, LastName, PhoneNumber, EmailConfirmed, Primary</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- StudentClasses Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingClasses">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseClasses">
+                                    <strong>StudentClasses</strong> - Student class enrollments
+                                </button>
+                            </h2>
+                            <div id="collapseClasses" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, StudentId, ClassName, ClassDescription, Semester, Year</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TutoringNotes Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingNotes">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNotes">
+                                    <strong>TutoringNotes</strong> - Tutoring session notes
+                                </button>
+                            </h2>
+                            <div id="collapseNotes" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, StudentId, TutorId, NoteDate, NoteText, SessionDuration</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DirectorsPageInfos Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingDirectors">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDirectors">
+                                    <strong>DirectorsPageInfos</strong> - School and grant information
+                                </button>
+                            </h2>
+                            <div id="collapseDirectors" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, BatchYear, SchoolName, Address, SchoolPhone, DirectorName, DirectorEmail, DirectorPhone, GrantType, PRAwardNumber, GrantBudget</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AuditLogs Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAudit">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAudit">
+                                    <strong>AuditLogs</strong> - System audit trail
+                                </button>
+                            </h2>
+                            <div id="collapseAudit" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, Timestamp, UserId, UserName, Action, EntityType, EntityId, Details</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RolePermissions Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingPermissions">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePermissions">
+                                    <strong>RolePermissions</strong> - Role-based permissions
+                                </button>
+                            </h2>
+                            <div id="collapsePermissions" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, RoleName, CanDeleteStudents, CanDeleteAdmins, CanDeleteDirectors, CanDeleteTutors, CanEditAdmins, CanEditDirectors, CanEditTutors, CanManageAdmins</code>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AspNetRoles Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingRoles">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRoles">
+                                    <strong>AspNetRoles</strong> - System roles
+                                </button>
+                            </h2>
+                            <div id="collapseRoles" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>Id, Name, NormalizedName</code>
+                                    <p class="mt-2 mb-0"><strong>Available Roles:</strong> Admin, Director, Tutor, Student</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AspNetUserRoles Table -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingUserRoles">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseUserRoles">
+                                    <strong>AspNetUserRoles</strong> - User role assignments
+                                </button>
+                            </h2>
+                            <div id="collapseUserRoles" class="accordion-collapse collapse" data-bs-parent="#schemaAccordion">
+                                <div class="accordion-body">
+                                    <code>UserId, RoleId</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 alert alert-warning">
+                        <strong>Query Examples:</strong>
+                        <ul class="mb-0">
+                            <li><code>SELECT * FROM Students WHERE Grade = '5th' LIMIT 10</code></li>
+                            <li><code>SELECT FirstName, LastName, Email FROM AspNetUsers</code></li>
+                            <li><code>SELECT COUNT(*) as TotalStudents FROM Students</code></li>
+                            <li><code>SELECT AcademicStanding, COUNT(*) as Count FROM Students GROUP BY AcademicStanding</code></li>
+                            <li><code>SELECT s.FirstName, s.LastName, u.Email as CreatedBy FROM Students s LEFT JOIN AspNetUsers u ON s.CreatedByUserId = u.Id</code></li>
+                        </ul>
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
@@ -155,4 +373,24 @@
     function resetForm() {
         document.getElementById('reportForm').reset();
     }
+
+    // Persist active tab across page reloads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if we should show the dashboards tab (when there are query results or errors)
+        var hasQueryResults = @(ViewBag.QueryResults != null ? "true" : "false");
+        var hasQueryError = @(ViewBag.QueryError != null ? "true" : "false");
+        
+        if (hasQueryResults || hasQueryError) {
+            // Switch to dashboards tab
+            var dashboardsTab = document.getElementById('dashboards-tab');
+            var dashboardsPane = document.getElementById('dashboards');
+            var reportsTab = document.getElementById('generate-reports-tab');
+            var reportsPane = document.getElementById('generate-reports');
+            
+            reportsTab.classList.remove('active');
+            reportsPane.classList.remove('show', 'active');
+            dashboardsTab.classList.add('active');
+            dashboardsPane.classList.add('show', 'active');
+        }
+    });
 </script>
