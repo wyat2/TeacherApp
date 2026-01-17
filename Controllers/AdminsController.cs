@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using TeacherApp.Models;
 using TeacherApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace TeacherApp.Controllers
 {
@@ -158,6 +159,158 @@ namespace TeacherApp.Controllers
                 ModelState.AddModelError(string.Empty, err.Description);
 
             return View(user);
+        }
+
+        // Tools Section
+        public async Task<IActionResult> Tools()
+        {
+            var dropdownFields = new List<DropdownFieldViewModel>
+            {
+                new DropdownFieldViewModel
+                {
+                    FieldName = "ContactType",
+                    DisplayName = "Contact Type",
+                    Values = await _context.DropdownValues
+                        .Where(d => d.FieldName == "ContactType")
+                        .OrderBy(d => d.DisplayOrder)
+                        .ToListAsync()
+                }
+            };
+
+            return View(dropdownFields);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddDropdownValue([FromBody] DropdownValueDto dto)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(dto.Value))
+                {
+                    return Json(new { success = false, message = "Value is required" });
+                }
+
+                var maxOrder = await _context.DropdownValues
+                    .Where(d => d.FieldName == dto.FieldName)
+                    .MaxAsync(d => (int?)d.DisplayOrder) ?? 0;
+
+                var dropdownValue = new DropdownValue
+                {
+                    FieldName = dto.FieldName,
+                    Value = dto.Value,
+                    DisplayOrder = maxOrder + 1
+                };
+
+                _context.DropdownValues.Add(dropdownValue);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, id = dropdownValue.Id });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateDropdownValue([FromBody] DropdownValueDto dto)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(dto.Value))
+                {
+                    return Json(new { success = false, message = "Value is required" });
+                }
+
+                var dropdownValue = await _context.DropdownValues.FindAsync(dto.Id);
+                if (dropdownValue == null)
+                {
+                    return Json(new { success = false, message = "Value not found" });
+                }
+
+                dropdownValue.Value = dto.Value;
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteDropdownValue(int id, string fieldName)
+        {
+            try
+            {
+                var dropdownValue = await _context.DropdownValues.FindAsync(id);
+                if (dropdownValue == null)
+                {
+                    return Json(new { success = false, message = "Value not found" });
+                }
+
+                var valueToDelete = dropdownValue.Value;
+
+                // If this is ContactType, update any contacts using this value to "-"
+                if (fieldName == "ContactType")
+                {
+                    var contactsToUpdate = await _context.Contacts
+                        .Where(c => c.ContactType == valueToDelete)
+                        .ToListAsync();
+
+                    foreach (var contact in contactsToUpdate)
+                    {
+                        contact.ContactType = "-";
+                    }
+                }
+
+                _context.DropdownValues.Remove(dropdownValue);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReorderDropdownValues([FromBody] List<int> orderedIds)
+        {
+            try
+            {
+                for (int i = 0; i < orderedIds.Count; i++)
+                {
+                    var dropdownValue = await _context.DropdownValues.FindAsync(orderedIds[i]);
+                    if (dropdownValue != null)
+                    {
+                        dropdownValue.DisplayOrder = i;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class DropdownFieldViewModel
+        {
+            public string FieldName { get; set; } = string.Empty;
+            public string DisplayName { get; set; } = string.Empty;
+            public List<DropdownValue> Values { get; set; } = new();
+        }
+
+        public class DropdownValueDto
+        {
+            public int Id { get; set; }
+            public string FieldName { get; set; } = string.Empty;
+            public string Value { get; set; } = string.Empty;
         }
     }
 }

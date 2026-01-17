@@ -26,5 +26,6 @@ namespace TeacherApp.Models
         public string? NameOfGranteeInstitution { get; set; }
         public decimal? GrantBudget { get; set; }
         public string? BatchYear { get; set; }
+        public bool IsCurrent { get; set; }
     }
 }

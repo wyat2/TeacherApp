@@ -70,38 +70,51 @@ namespace TeacherApp.Controllers
             {
                 info = new DirectorsPageInfo();
                 ViewBag.SelectedBatchYear = null;
-                TempData["CurrentBatchYear"] = "Creating New...";
             }
             else if (!string.IsNullOrEmpty(selectedBatchYear))
             {
-                // User explicitly selected a batch year
+                // User explicitly selected a batch year - set it as current for all users
                 info = _context.DirectorsPageInfos
                     .FirstOrDefault(d => d.BatchYear == selectedBatchYear);
+                
+                // Clear IsCurrent from all batch years
+                var allBatches = _context.DirectorsPageInfos.ToList();
+                foreach (var batch in allBatches)
+                {
+                    batch.IsCurrent = false;
+                }
+                
+                // Set selected as current
+                if (info != null)
+                {
+                    info.IsCurrent = true;
+                    _context.SaveChanges();
+                }
+                
                 ViewBag.SelectedBatchYear = selectedBatchYear;
-                TempData["CurrentBatchYear"] = selectedBatchYear;
             }
             else
             {
-                // Check if there's a previously selected batch year in TempData
-                var previouslySelected = TempData.Peek("CurrentBatchYear") as string;
+                // No batch year selected - use the one marked as current
+                info = _context.DirectorsPageInfos
+                    .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
                 
-                if (!string.IsNullOrEmpty(previouslySelected) && previouslySelected != "Creating New...")
+                if (info == null && allBatchYears.Any())
                 {
-                    // Use the previously selected batch year
-                    info = _context.DirectorsPageInfos
-                        .FirstOrDefault(d => d.BatchYear == previouslySelected);
-                    ViewBag.SelectedBatchYear = previouslySelected;
-                    TempData.Keep("CurrentBatchYear");
-                }
-                else if (allBatchYears.Any())
-                {
-                    // Show the most recent batch year by default
+                    // No current batch year set, use the most recent
                     var latestYear = allBatchYears.First();
                     info = _context.DirectorsPageInfos
                         .FirstOrDefault(d => d.BatchYear == latestYear);
-                    ViewBag.SelectedBatchYear = latestYear;
-                    TempData["CurrentBatchYear"] = latestYear;
+                    
+                    // Set it as current
+                    if (info != null)
+                    {
+                        info.IsCurrent = true;
+                        _context.SaveChanges();
+                    }
                 }
+                
+                ViewBag.SelectedBatchYear = info?.BatchYear;
             }
             
             ViewBag.DirectorsPageInfo = info ?? new TeacherApp.Models.DirectorsPageInfo();

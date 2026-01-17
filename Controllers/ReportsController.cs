@@ -31,9 +31,10 @@ namespace TeacherApp.Controllers
             
             ViewBag.AvailableBatchYears = batchYears;
             
-            // Get current batch year from TempData
-            ViewBag.CurrentBatchYear = TempData.Peek("CurrentBatchYear") as string;
-            TempData.Keep("CurrentBatchYear");
+            // Get current batch year from database
+            var currentBatchYearInfo = _context.DirectorsPageInfos
+                .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+            ViewBag.CurrentBatchYear = currentBatchYearInfo?.BatchYear;
             
             return View();
         }
@@ -242,13 +243,14 @@ namespace TeacherApp.Controllers
         public async Task<IActionResult> GenerateAnnualPerformanceReport()
         {
             // Get currently selected batch year
-            var currentBatchYear = TempData.Peek("CurrentBatchYear") as string;
-            TempData.Keep("CurrentBatchYear"); // Keep TempData for subsequent requests
+            var currentBatchYearInfo = _context.DirectorsPageInfos
+                .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+            var currentBatchYear = currentBatchYearInfo?.BatchYear;
             
             // Get students filtered by current batch year
             var studentsQuery = _context.Students.AsQueryable();
             
-            if (!string.IsNullOrEmpty(currentBatchYear) && currentBatchYear != "Creating New...")
+            if (!string.IsNullOrEmpty(currentBatchYear))
             {
                 studentsQuery = studentsQuery.Where(s => s.BatchYear == currentBatchYear);
             }
@@ -350,8 +352,9 @@ namespace TeacherApp.Controllers
                 .ToList();
             
             ViewBag.AvailableBatchYears = batchYears;
-            ViewBag.CurrentBatchYear = TempData.Peek("CurrentBatchYear") as string;
-            TempData.Keep("CurrentBatchYear");
+            var currentBatchYearInfo = _context.DirectorsPageInfos
+                .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+            ViewBag.CurrentBatchYear = currentBatchYearInfo?.BatchYear;
 
             // Preserve the query in ViewBag to display it back in the textarea
             ViewBag.SqlQuery = sqlQuery;

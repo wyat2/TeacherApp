@@ -15,11 +15,13 @@
         var directorsPageInfo = DbContext.DirectorsPageInfos.FirstOrDefault();
         var schoolName = directorsPageInfo?.SchoolName ?? "TRIO Program";
         
-        // Check TempData first for selected batch year (from Directors page)
-        var currentBatchYear = TempData.Peek("CurrentBatchYear") as string;
+        // Get the current batch year from the database (marked with IsCurrent flag)
+        var currentBatchYearInfo = DbContext.DirectorsPageInfos
+            .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+        var currentBatchYear = currentBatchYearInfo?.BatchYear;
         
-        // If not set, get the most recent batch year
-        if (string.IsNullOrEmpty(currentBatchYear) || currentBatchYear == "Creating New...")
+        // If no batch year is marked as current, get the most recent one
+        if (string.IsNullOrEmpty(currentBatchYear))
         {
             currentBatchYear = DbContext.DirectorsPageInfos
                 .Where(d => !string.IsNullOrEmpty(d.BatchYear))

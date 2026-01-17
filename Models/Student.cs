@@ -110,5 +110,8 @@ namespace TeacherApp.Models
 
         // Navigation property for student classes
         public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
+        
+        // Navigation property for contacts
+        public virtual ICollection<Contact> Contacts { get; set; } = new List<Contact>();
     }
 }

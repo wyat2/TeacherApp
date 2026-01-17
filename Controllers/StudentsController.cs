@@ -58,14 +58,16 @@ namespace TeacherApp.Controllers
             return false;
         }
 
-        public async Task<IActionResult> Index(string? q, string? standing)
+        public async Task<IActionResult> Index(string? q, string? standing, string? gpaRange)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             
             // Filter by current batch year
-            var currentBatchYear = TempData.Peek("CurrentBatchYear") as string;
-            TempData.Keep("CurrentBatchYear"); // Keep TempData for subsequent requests
-            if (!string.IsNullOrEmpty(currentBatchYear) && currentBatchYear != "Creating New...")
+            var currentBatchYearInfo = _context.DirectorsPageInfos
+                .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+            var currentBatchYear = currentBatchYearInfo?.BatchYear;
+            
+            if (!string.IsNullOrEmpty(currentBatchYear))
             {
                 studentsQuery = studentsQuery.Where(s => s.BatchYear == currentBatchYear);
             }
@@ -73,6 +75,7 @@ namespace TeacherApp.Controllers
             // Check if this is a search or filter request
             bool isSearch = !string.IsNullOrWhiteSpace(q);
             bool isStandingFilter = !string.IsNullOrWhiteSpace(standing);
+            bool isGpaRangeFilter = !string.IsNullOrWhiteSpace(gpaRange);
             
             if (isSearch)
             {
@@ -86,11 +89,23 @@ namespace TeacherApp.Controllers
             {
                 studentsQuery = studentsQuery.Where(s => s.AcademicStanding == standing);
             }
+            
+            // Filter by GPA range if specified
+            if (isGpaRangeFilter)
+            {
+                var rangeParts = gpaRange!.Split('-');
+                if (rangeParts.Length == 2 && 
+                    decimal.TryParse(rangeParts[0], out var minGpa) && 
+                    decimal.TryParse(rangeParts[1], out var maxGpa))
+                {
+                    studentsQuery = studentsQuery.Where(s => s.CumulativeGPA >= minGpa && s.CumulativeGPA <= maxGpa);
+                }
+            }
 
             var students = await studentsQuery.ToListAsync();
             
-            // If not searching or filtering or filtering, calculate histogram data for each academic standing
-            if (!isSearch && !isStandingFilter)
+            // If not searching or filtering, calculate histogram data for each academic standing
+            if (!isSearch && !isStandingFilter && !isGpaRangeFilter)
             {
                 var academicStandings = new[] { "Freshman", "Sophomore", "Junior", "Senior", "Graduate Student" };
                 var histogramData = new Dictionary<string, Dictionary<string, int>>();
@@ -120,6 +135,8 @@ namespace TeacherApp.Controllers
             ViewBag.IsSearch = isSearch;
             ViewBag.Standing = standing;
             ViewBag.IsStandingFilter = isStandingFilter;
+            ViewBag.GpaRange = gpaRange;
+            ViewBag.IsGpaRangeFilter = isGpaRangeFilter;
             return View(students);
         }
 
@@ -168,8 +185,17 @@ namespace TeacherApp.Controllers
             var student = await _context.Students
                 .Include(s => s.CreatedByUser)
                 .Include(s => s.StudentClasses)
+                .Include(s => s.Contacts)
+                    .ThenInclude(c => c.CreatedByUser)
                 .FirstOrDefaultAsync(s => s.Id == id.Value);
             if (student == null) return NotFound();
+
+            // Load dropdown values for Contact Type
+            ViewBag.ContactTypes = await _context.DropdownValues
+                .Where(d => d.FieldName == "ContactType")
+                .OrderBy(d => d.DisplayOrder)
+                .Select(d => d.Value)
+                .ToListAsync();
 
             // Audit log - view student record
             await _auditLog.LogAsync("View", "Student", student.Id, 
@@ -434,6 +460,98 @@ namespace TeacherApp.Controllers
                 }
 
                 _context.StudentClasses.Remove(studentClass);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddContact([FromBody] ContactDto contactDto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(contactDto.ContactType))
+                {
+                    return Json(new { success = false, message = "Contact type is required" });
+                }
+
+                var contact = new Contact
+                {
+                    StudentId = contactDto.StudentId,
+                    Date = DateTime.Parse(contactDto.Date),
+                    ContactType = contactDto.ContactType,
+                    Notes = contactDto.Notes,
+                    CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
+                    CreatedAt = DateTime.Now
+                };
+
+                _context.Contacts.Add(contact);
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        public class ContactDto
+        {
+            public int Id { get; set; }
+            public int StudentId { get; set; }
+            public string Date { get; set; } = string.Empty;
+            public string ContactType { get; set; } = string.Empty;
+            public string? Notes { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditContact([FromBody] ContactDto contactDto)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(contactDto.ContactType))
+                {
+                    return Json(new { success = false, message = "Contact type is required" });
+                }
+
+                var existingContact = await _context.Contacts.FindAsync(contactDto.Id);
+                if (existingContact == null)
+                {
+                    return Json(new { success = false, message = "Contact not found" });
+                }
+
+                existingContact.Date = DateTime.Parse(contactDto.Date);
+                existingContact.ContactType = contactDto.ContactType;
+                existingContact.Notes = contactDto.Notes;
+
+                await _context.SaveChangesAsync();
+                
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteContact(int id)
+        {
+            try
+            {
+                var contact = await _context.Contacts.FindAsync(id);
+                if (contact == null)
+                {
+                    return Json(new { success = false, message = "Contact not found" });
+                }
+
+                _context.Contacts.Remove(contact);
                 await _context.SaveChangesAsync();
                 
                 return Json(new { success = true });

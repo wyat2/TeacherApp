@@ -1,0 +1,280 @@
+@model List<TeacherApp.Controllers.AdminsController.DropdownFieldViewModel>
+@{
+    ViewData["Title"] = "Editable Fields";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Editable Fields</h2>
+        <a class="btn btn-secondary" asp-action="Index">Back to Admins</a>
+    </div>
+
+    <div class="alert alert-info mb-4">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-info-circle me-2" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+            <path d="M8.93 6.588l-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+        </svg>
+        <strong>Note:</strong> When you delete a dropdown value that is in use by any student, those student records will have their value changed to "-".
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Select Field to Edit</h5>
+                    <select class="form-select form-select-lg" id="fieldSelector" onchange="selectField(this.value)">
+                        <option value="">Choose a field...</option>
+                        @foreach (var field in Model)
+                        {
+                            <option value="@field.FieldName" selected="@(field.FieldName == "ContactType" ? "selected" : null)">@field.DisplayName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            @foreach (var field in Model)
+            {
+                <div class="field-values-section @(field.FieldName == "ContactType" ? "" : "d-none")" id="field-@field.FieldName">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">@field.DisplayName Values</h4>
+                            <button type="button" class="btn btn-sm btn-light" onclick="showAddModal('@field.FieldName', '@field.DisplayName')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-circle me-1" viewBox="0 0 16 16">
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4"/>
+                                </svg>
+                                Add Value
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            @if (field.Values.Any())
+                            {
+                                <div class="list-group" id="list-@field.FieldName">
+                                    @foreach (var value in field.Values)
+                                    {
+                                        <div class="list-group-item d-flex justify-content-between align-items-center" data-id="@value.Id">
+                                            <div class="flex-grow-1 d-flex align-items-center">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-grip-vertical text-muted me-2" viewBox="0 0 16 16">
+                                                    <path d="M7 2a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 5a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M7 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0m-3 3a1 1 0 1 1-2 0 1 1 0 0 1 2 0m3 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                                </svg>
+                                                <span class="value-text">@value.Value</span>
+                                                <input type="text" class="form-control d-none value-edit" value="@value.Value" />
+                                            </div>
+                                            <div class="btn-group ms-2">
+                                                <button type="button" class="btn btn-sm btn-warning" onclick="editValue(this, @value.Id, '@field.FieldName')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                                                        <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325"/>
+                                                    </svg>
+                                                    Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteValue(@value.Id, '@field.FieldName', '@value.Value')">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                        <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                                    </svg>
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary mb-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-inbox me-2" viewBox="0 0 16 16">
+                                        <path d="M4.98 4a.5.5 0 0 0-.39.188L1.54 8H6a.5.5 0 0 1 .5.5 1.5 1.5 0 1 0 3 0A.5.5 0 0 1 10 8h4.46l-3.05-3.812A.5.5 0 0 0 11.02 4zm9.954 5H10.45a2.5 2.5 0 0 1-4.9 0H1.066l.32 2.562a.5.5 0 0 0 .497.438h12.234a.5.5 0 0 0 .496-.438zM3.809 3.563A1.5 1.5 0 0 1 4.981 3h6.038a1.5 1.5 0 0 1 1.172.563l3.7 4.625a.5.5 0 0 1 .105.374l-.39 3.124A1.5 1.5 0 0 1 14.117 13H1.883a1.5 1.5 0 0 1-1.489-1.314l-.39-3.124a.5.5 0 0 1 .106-.374z"/>
+                                    </svg>
+                                    No values defined. Click "Add Value" to create one.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add Value Modal -->
+<div class="modal fade" id="addValueModal" tabindex="-1" aria-labelledby="addValueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addValueModalLabel">Add Value</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addValueForm">
+                    <input type="hidden" id="addFieldName" />
+                    <div class="mb-3">
+                        <label for="addFieldDisplayName" class="form-label">Field</label>
+                        <input type="text" class="form-control" id="addFieldDisplayName" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label for="addValue" class="form-label">Value *</label>
+                        <input type="text" class="form-control" id="addValue" required />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitAddValue()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        cursor: move;
+        transition: background-color 0.2s;
+    }
+    
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .field-values-section {
+        animation: fadeIn 0.3s;
+    }
+    
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<script>
+    function selectField(fieldName) {
+        // Hide all field sections
+        document.querySelectorAll('.field-values-section').forEach(section => {
+            section.classList.add('d-none');
+        });
+        
+        // Show selected field section
+        if (fieldName) {
+            const selectedSection = document.getElementById('field-' + fieldName);
+            if (selectedSection) {
+                selectedSection.classList.remove('d-none');
+            }
+        }
+    }
+    
+    function showAddModal(fieldName, displayName) {
+        document.getElementById('addFieldName').value = fieldName;
+        document.getElementById('addFieldDisplayName').value = displayName;
+        document.getElementById('addValue').value = '';
+        const modal = new bootstrap.Modal(document.getElementById('addValueModal'));
+        modal.show();
+    }
+
+    function submitAddValue() {
+        const fieldName = document.getElementById('addFieldName').value;
+        const value = document.getElementById('addValue').value.trim();
+
+        if (!value) {
+            alert('Value is required');
+            return;
+        }
+
+        fetch('/Admins/AddDropdownValue', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                fieldName: fieldName,
+                value: value
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Error adding value: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error adding value');
+        });
+    }
+
+    function editValue(button, id, fieldName) {
+        const listItem = button.closest('.list-group-item');
+        const textSpan = listItem.querySelector('.value-text');
+        const editInput = listItem.querySelector('.value-edit');
+
+        if (textSpan.classList.contains('d-none')) {
+            // Save mode
+            const newValue = editInput.value.trim();
+            if (!newValue) {
+                alert('Value cannot be empty');
+                return;
+            }
+
+            fetch('/Admins/UpdateDropdownValue', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    id: id,
+                    fieldName: fieldName,
+                    value: newValue
+                })
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    textSpan.textContent = newValue;
+                    textSpan.classList.remove('d-none');
+                    editInput.classList.add('d-none');
+                    button.textContent = 'Edit';
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-warning');
+                } else {
+                    alert('Error updating value: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error updating value');
+            });
+        } else {
+            // Edit mode
+            textSpan.classList.add('d-none');
+            editInput.classList.remove('d-none');
+            editInput.focus();
+            button.textContent = 'Save';
+            button.classList.remove('btn-warning');
+            button.classList.add('btn-success');
+        }
+    }
+
+    function deleteValue(id, fieldName, value) {
+        if (!confirm(`Are you sure you want to delete "${value}"? This will set all student records using this value to "-".`)) {
+            return;
+        }
+
+        fetch('/Admins/DeleteDropdownValue?id=' + id + '&fieldName=' + fieldName, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                location.reload();
+            } else {
+                alert('Error deleting value: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting value');
+        });
+    }
+</script>

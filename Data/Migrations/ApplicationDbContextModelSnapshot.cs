@@ -276,6 +276,41 @@ namespace TeacherApp.Data.Migrations
                     b.ToTable("AuditLogs");
                 });
 
+            modelBuilder.Entity("TeacherApp.Models.Contact", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ContactType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("Contacts");
+                });
+
             modelBuilder.Entity("TeacherApp.Models.DirectorsPageInfo", b =>
                 {
                     b.Property<int>("Id")
@@ -306,6 +341,9 @@ namespace TeacherApp.Data.Migrations
                     b.Property<string>("GrantType")
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("NameOfGranteeInstitution")
                         .HasColumnType("TEXT");
 
@@ -327,6 +365,33 @@ namespace TeacherApp.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DirectorsPageInfos");
+                });
+
+            modelBuilder.Entity("TeacherApp.Models.DropdownValue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DropdownValues");
                 });
 
             modelBuilder.Entity("TeacherApp.Models.Homework", b =>
@@ -686,6 +751,25 @@ namespace TeacherApp.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TeacherApp.Models.Contact", b =>
+                {
+                    b.HasOne("TeacherApp.Models.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("TeacherApp.Models.Student", "Student")
+                        .WithMany("Contacts")
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Student");
+                });
+
             modelBuilder.Entity("TeacherApp.Models.Homework", b =>
                 {
                     b.HasOne("TeacherApp.Models.ApplicationUser", "CreatedByUser")
@@ -761,6 +845,8 @@ namespace TeacherApp.Data.Migrations
 
             modelBuilder.Entity("TeacherApp.Models.Student", b =>
                 {
+                    b.Navigation("Contacts");
+
                     b.Navigation("StudentClasses");
                 });
 
