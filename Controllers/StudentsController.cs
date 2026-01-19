@@ -58,18 +58,21 @@ namespace TeacherApp.Controllers
             return false;
         }
 
-        public async Task<IActionResult> Index(string? q, string? standing, string? gpaRange)
+        public async Task<IActionResult> Index(string? q, string? standing, string? gpaRange, bool showAll = false)
         {
             var studentsQuery = _context.Students.Include(s => s.CreatedByUser).AsQueryable();
             
-            // Filter by current batch year
-            var currentBatchYearInfo = _context.DirectorsPageInfos
-                .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
-            var currentBatchYear = currentBatchYearInfo?.BatchYear;
-            
-            if (!string.IsNullOrEmpty(currentBatchYear))
+            // Filter by current batch year unless showAll is true
+            if (!showAll)
             {
-                studentsQuery = studentsQuery.Where(s => s.BatchYear == currentBatchYear);
+                var currentBatchYearInfo = _context.DirectorsPageInfos
+                    .FirstOrDefault(d => d.IsCurrent && !string.IsNullOrEmpty(d.BatchYear));
+                var currentBatchYear = currentBatchYearInfo?.BatchYear;
+                
+                if (!string.IsNullOrEmpty(currentBatchYear))
+                {
+                    studentsQuery = studentsQuery.Where(s => s.BatchYear == currentBatchYear);
+                }
             }
             
             // Check if this is a search or filter request
@@ -105,7 +108,7 @@ namespace TeacherApp.Controllers
             var students = await studentsQuery.ToListAsync();
             
             // If not searching or filtering, calculate histogram data for each academic standing
-            if (!isSearch && !isStandingFilter && !isGpaRangeFilter)
+            if (!isSearch && !isStandingFilter && !isGpaRangeFilter && !showAll)
             {
                 var academicStandings = new[] { "Freshman", "Sophomore", "Junior", "Senior", "Graduate Student" };
                 var histogramData = new Dictionary<string, Dictionary<string, int>>();
@@ -137,6 +140,7 @@ namespace TeacherApp.Controllers
             ViewBag.IsStandingFilter = isStandingFilter;
             ViewBag.GpaRange = gpaRange;
             ViewBag.IsGpaRangeFilter = isGpaRangeFilter;
+            ViewBag.ShowAll = showAll;
             return View(students);
         }
 

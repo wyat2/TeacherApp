@@ -11,6 +11,7 @@
   <div class="col-auto">
     <button class="btn btn-outline-primary" type="submit">Search</button>
     <a class="btn btn-outline-secondary ms-1" href="/Students">Clear</a>
+    <a class="btn btn-outline-info ms-1" href="/Students?showAll=true">All</a>
   </div>
 </form>
 <p>
@@ -18,10 +19,17 @@
   <a class="btn btn-secondary ms-2" href="/Students/ExportCsv?q=@ViewBag.Query">Export CSV</a>
 </p>
 
-@if (ViewBag.IsSearch == true || ViewBag.IsStandingFilter == true || ViewBag.IsGpaRangeFilter == true)
+@if (ViewBag.IsSearch == true || ViewBag.IsStandingFilter == true || ViewBag.IsGpaRangeFilter == true || ViewBag.ShowAll == true)
 {
     <!-- Student List View (shown during search or standing filter) -->
-    @if (ViewBag.IsStandingFilter == true || ViewBag.IsGpaRangeFilter == true)
+    @if (ViewBag.ShowAll == true)
+    {
+        <div class="alert alert-info">
+            <span>Showing <strong>all students</strong> (all batch years)</span>
+            <a href="/Students" class="btn btn-sm btn-outline-secondary ms-2">Show Current Batch Year Only</a>
+        </div>
+    }
+    else if (ViewBag.IsStandingFilter == true || ViewBag.IsGpaRangeFilter == true)
     {
         <div class="alert alert-info">
             @if (ViewBag.IsGpaRangeFilter == true)
