@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=teacherapp
+      - POSTGRES_USER=teacherapp
+      - POSTGRES_PASSWORD=DevPassword123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teacherapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   teacherapp:
     build:
       context: .
@@ -12,4 +29,10 @@ services:
       - ASPNETCORE_URLS=http://+:8080
     volumes:
       - ./teacherapp.db:/app/teacherapp.db
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  postgres_data:
