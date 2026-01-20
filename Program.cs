@@ -11,7 +11,7 @@ if (args.Contains("--populate-test-data"))
 {
     // Run test data population and exit
     var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
     
     using (var context = new ApplicationDbContext(optionsBuilder.Options))
     {
@@ -24,7 +24,7 @@ if (args.Contains("--populate-case-numbers"))
 {
     // Run case number population and exit
     var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
     
     using (var context = new ApplicationDbContext(optionsBuilder.Options))
     {
@@ -37,7 +37,7 @@ if (args.Contains("--update-academic-standing"))
 {
     // Run academic standing update and exit
     var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
     
     using (var context = new ApplicationDbContext(optionsBuilder.Options))
     {
@@ -50,7 +50,7 @@ if (args.Contains("--update-names-uppercase"))
 {
     // Run names uppercase update and exit
     var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
     
     using (var context = new ApplicationDbContext(optionsBuilder.Options))
     {
@@ -63,7 +63,7 @@ if (args.Contains("--update-dropdown-values"))
 {
     // Run dropdown values update and exit
     var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-    optionsBuilder.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db");
+    optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection"));
     
     using (var context = new ApplicationDbContext(optionsBuilder.Options))
     {
@@ -72,9 +72,12 @@ if (args.Contains("--update-dropdown-values"))
     return;
 }
 
+// Configure Npgsql to use timestamp without time zone for DateTime
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=teacherapp.db"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection")));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
@@ -161,6 +164,26 @@ using (var scope = app.Services.CreateScope())
         roleManager.CreateAsync(new IdentityRole("Director")).Wait();
     }
 
+    // Ensure Director role has all permissions
+    var directorPermission = context.RolePermissions.FirstOrDefault(rp => rp.RoleName == "Director");
+    if (directorPermission == null)
+    {
+        directorPermission = new RolePermission
+        {
+            RoleName = "Director",
+            CanDeleteStudents = true,
+            CanManageAdmins = true,
+            CanDeleteAdmins = true,
+            CanDeleteDirectors = true,
+            CanDeleteTutors = true,
+            CanEditAdmins = true,
+            CanEditDirectors = true,
+            CanEditTutors = true
+        };
+        context.RolePermissions.Add(directorPermission);
+        context.SaveChanges();
+    }
+
     if (!roleManager.RoleExistsAsync("Student").Result)
     {
         roleManager.CreateAsync(new IdentityRole("Student")).Wait();
@@ -176,6 +199,26 @@ using (var scope = app.Services.CreateScope())
         if (!string.IsNullOrEmpty(seedUsers) && seedUsers.Equals("true", StringComparison.OrdinalIgnoreCase))
         {
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            
+            // Create specific Director user
+            var directorEmail = "Director@gmail.com";
+            if (userManager.FindByEmailAsync(directorEmail).Result == null)
+            {
+                var directorUser = new ApplicationUser 
+                { 
+                    UserName = directorEmail, 
+                    Email = directorEmail, 
+                    FirstName = "Director", 
+                    LastName = "User", 
+                    PhoneNumber = "555-1000" 
+                };
+                var directorResult = userManager.CreateAsync(directorUser, "Password123!").Result;
+                if (directorResult.Succeeded)
+                {
+                    userManager.AddToRoleAsync(directorUser, "Director").Wait();
+                }
+            }
+            
             var names = new[] { "Olivia", "Liam", "Emma", "Noah", "Ava", "Oliver", "Sophia", "Elijah", "Isabella", "Lucas", "Mia", "Mason", "Amelia", "Logan", "James", "Ethan", "Harper", "Benjamin", "Evelyn", "Alexander" };
             var lasts = new[] { "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin" };
             var rnd = new Random();

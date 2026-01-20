@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Error";
+}
+
+<h1 class="text-danger">Error</h1>
+<h2 class="text-danger">An error occurred while processing your request.</h2>
+
+@if (ViewBag.ErrorMessage != null)
+{
+    <div class="alert alert-danger">
+        <h4>Error Details:</h4>
+        <p>@ViewBag.ErrorMessage</p>
+    </div>
+}
+
+@if (ViewBag.StackTrace != null && Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+{
+    <div class="alert alert-warning">
+        <h4>Stack Trace:</h4>
+        <pre>@ViewBag.StackTrace</pre>
+    </div>
+}
+
+<p>
+    <a asp-action="Index" asp-controller="Home" class="btn btn-primary">Go Home</a>
+</p>

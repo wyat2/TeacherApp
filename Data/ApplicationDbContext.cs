@@ -20,5 +20,31 @@ namespace TeacherApp.Data
         public DbSet<TeacherApp.Models.DirectorsPageInfo> DirectorsPageInfos { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<DropdownValue> DropdownValues { get; set; }
+
+        public override int SaveChanges()
+        {
+            ConvertDateTimesToUtc();
+            return base.SaveChanges();
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            ConvertDateTimesToUtc();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void ConvertDateTimesToUtc()
+        {
+            foreach (var entry in ChangeTracker.Entries())
+            {
+                foreach (var property in entry.Properties)
+                {
+                    if (property.CurrentValue is DateTime dateTime && dateTime.Kind == DateTimeKind.Unspecified)
+                    {
+                        property.CurrentValue = DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+                    }
+                }
+            }
+        }
     }
 }
