@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using System.Data;
-using Microsoft.Data.Sqlite;
+using Npgsql;
 using TeacherApp.Data;
 using TeacherApp.Models;
 
@@ -389,7 +389,7 @@ namespace TeacherApp.Controllers
             try
             {
                 var connectionString = _context.Database.GetConnectionString();
-                using var connection = new SqliteConnection(connectionString);
+                using var connection = new NpgsqlConnection(connectionString);
                 await connection.OpenAsync();
 
                 using var command = connection.CreateCommand();

@@ -27,8 +27,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:8080
-    volumes:
-      - ./teacherapp.db:/app/teacherapp.db
     depends_on:
       postgres:
         condition: service_healthy

@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TeacherApp.Models;
 using TeacherApp.ViewModels;
 using TeacherApp.Services;
+using TeacherApp.Data;
+using Npgsql;
 
 namespace TeacherApp.Controllers
 {
@@ -11,12 +14,24 @@ namespace TeacherApp.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAuditLogService _auditLog;
+        private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IAuditLogService auditLog)
+        public AccountController(
+            UserManager<ApplicationUser> userManager, 
+            SignInManager<ApplicationUser> signInManager, 
+            IAuditLogService auditLog,
+            ApplicationDbContext context,
+            IWebHostEnvironment env,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _auditLog = auditLog;
+            _context = context;
+            _env = env;
+            _configuration = configuration;
         }
 
         [HttpGet]
@@ -81,6 +96,31 @@ namespace TeacherApp.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+            
+            // Clear the database
+            try
+            {
+                var connectionString = _configuration.GetConnectionString("PostgreSqlConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+                
+                using var command = connection.CreateCommand();
+                command.CommandText = "DROP SCHEMA public CASCADE; CREATE SCHEMA public;";
+                await command.ExecuteNonQueryAsync();
+            }
+            catch (Exception ex)
+            {
+                // Log error but continue with logout
+                Console.WriteLine($"Error clearing database: {ex.Message}");
+            }
+            
+            // Remove setup flag
+            var setupFlagPath = Path.Combine(_env.ContentRootPath, ".setup-complete");
+            if (System.IO.File.Exists(setupFlagPath))
+            {
+                System.IO.File.Delete(setupFlagPath);
+            }
+            
             return RedirectToAction("Index", "Home");
         }
     }

@@ -100,7 +100,7 @@
     <div class="setup-container">
         <div class="setup-header">
             <h1>📚 TeacherApp</h1>
-            <p>Initial Setup - Create Your Admin Account</p>
+            <p>Initial Setup - Create Your Director Account</p>
         </div>
 
         <div class="alert alert-info">
@@ -116,10 +116,30 @@
             }
 
             <div class="mb-3">
-                <label asp-for="AdminEmail" class="form-label">Admin Email Address</label>
-                <input asp-for="AdminEmail" type="email" class="form-control" placeholder="admin@example.com" />
+                <label asp-for="FirstName" class="form-label">First Name</label>
+                <input asp-for="FirstName" type="text" class="form-control" placeholder="John" />
+                <span asp-validation-for="FirstName" class="text-danger small d-block mt-1"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="LastName" class="form-label">Last Name</label>
+                <input asp-for="LastName" type="text" class="form-control" placeholder="Doe" />
+                <span asp-validation-for="LastName" class="text-danger small d-block mt-1"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="AdminEmail" class="form-label">Director Email Address</label>
+                <input asp-for="AdminEmail" type="email" class="form-control" placeholder="director@example.com" />
                 <span asp-validation-for="AdminEmail" class="text-danger small d-block mt-1"></span>
                 <small class="text-muted">This email will be used to log in to the system.</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="BatchYear" class="form-label">Batch Year</label>
+                <input asp-for="BatchYear" type="text" class="form-control" placeholder="2025" 
+                       pattern="[0-9]{4}" maxlength="4" inputmode="numeric" />
+                <span asp-validation-for="BatchYear" class="text-danger small d-block mt-1"></span>
+                <small class="text-muted">Must be exactly 4 digits (e.g., 2025).</small>
             </div>
 
             <div class="mb-3">
@@ -156,7 +176,7 @@
                     </label>
                 </div>
                 <small class="text-muted d-block mt-2">
-                    If checked, sample students and classes will be added for testing.
+                    If checked, 200 sample students, 5 admins, and 5 tutors will be added for testing.
                 </small>
             </div>
 

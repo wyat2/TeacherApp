@@ -235,7 +235,14 @@ namespace TeacherApp.Controllers
 
             // record who created the student (if available)
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            student.CreatedByUserId = userId;
+            if (!string.IsNullOrEmpty(userId))
+            {
+                student.CreatedByUserId = userId;
+            }
+            else
+            {
+                student.CreatedByUserId = null;
+            }
 
             // Auto-generate unique case number
             student.CaseNumber = await GenerateUniqueCaseNumberAsync();
@@ -484,14 +491,21 @@ namespace TeacherApp.Controllers
                     return Json(new { success = false, message = "Contact type is required" });
                 }
 
+                // Get current user ID
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+
                 var contact = new Contact
                 {
                     StudentId = contactDto.StudentId,
-                    Date = DateTime.Parse(contactDto.Date),
+                    Date = DateTime.SpecifyKind(DateTime.Parse(contactDto.Date), DateTimeKind.Utc),
                     ContactType = contactDto.ContactType,
                     Notes = contactDto.Notes,
-                    CreatedByUserId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty,
-                    CreatedAt = DateTime.Now
+                    CreatedByUserId = userId,
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Contacts.Add(contact);
@@ -501,7 +515,8 @@ namespace TeacherApp.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                return Json(new { success = false, message = $"Error adding contact: {innerMessage}" });
             }
         }
 
@@ -615,7 +630,7 @@ namespace TeacherApp.Controllers
                     Notes = dto.Notes,
                     NoteDate = dto.NoteDate,
                     CreatedByUserId = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.TutoringNotes.Add(tutoringNote);
@@ -687,7 +702,7 @@ namespace TeacherApp.Controllers
                     Date = dto.Date,
                     Score = dto.Score,
                     CreatedByUserId = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Homework.Add(homework);
@@ -760,7 +775,7 @@ namespace TeacherApp.Controllers
                     Date = dto.Date,
                     Score = dto.Score,
                     CreatedByUserId = userId,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 _context.Tests.Add(test);

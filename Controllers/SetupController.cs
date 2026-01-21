@@ -43,14 +43,15 @@ namespace TeacherApp.Controllers
 
             try
             {
-                await _setupWizard.CompleteSetupAsync(model.AdminEmail, model.AdminPassword, model.CreateSampleData);
-                _logger.LogInformation($"Setup wizard completed. Admin user created: {model.AdminEmail}");
+                await _setupWizard.CompleteSetupAsync(model.FirstName, model.LastName, model.AdminEmail, model.AdminPassword, model.BatchYear, model.CreateSampleData);
+                _logger.LogInformation($"Setup wizard completed. Director user created: {model.FirstName} {model.LastName} ({model.AdminEmail}), Batch Year: {model.BatchYear}");
                 return RedirectToAction("Complete");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Setup wizard failed");
-                ModelState.AddModelError(string.Empty, "Setup failed. Please try again.");
+                var errorMessage = ex.InnerException?.Message ?? ex.Message;
+                ModelState.AddModelError(string.Empty, $"Setup failed: {errorMessage}");
                 return View(model);
             }
         }

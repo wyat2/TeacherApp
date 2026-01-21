@@ -2,8 +2,9 @@
 
 ASP.NET Core MVC application with Identity for comprehensive TRIO program student and user management.
 
-Prerequisites
-- .NET 10 SDK
+## Prerequisites
+- .NET 8 SDK
+- PostgreSQL (local development) or Google Cloud SQL (production)
 - (Optional) `dotnet-ef` tool: `dotnet tool install --global dotnet-ef` if you plan to run migrations.
 
 How to run
@@ -62,3 +63,27 @@ See [SECURITY_COMPLIANCE.md](SECURITY_COMPLIANCE.md) for detailed information on
 Data Maintenance
 - **UpdateDropdownValues.cs**: Migrate old values to new standardized dropdown options
 - **UpdateNamesToUppercase.cs**: Convert all student/user names to uppercase for consistency
+
+## Cloud Deployment
+
+This application is configured for deployment to **Google Cloud Run** with **Cloud SQL PostgreSQL**. 
+
+### Quick Deploy to Google Cloud
+
+See [CLOUD_DEPLOYMENT.md](CLOUD_DEPLOYMENT.md) for complete deployment instructions.
+
+**Quick steps:**
+1. Create Cloud SQL PostgreSQL instance
+2. Run `.\deploy-cloud-run.ps1` (Windows) or see CLOUD_DEPLOYMENT.md
+3. Your app will be available at a Cloud Run URL with automatic HTTPS
+
+**Features:**
+- ✅ Auto-scaling (scales to 0 when idle)
+- ✅ Automatic database migrations on startup
+- ✅ Persistent storage with Cloud SQL PostgreSQL
+- ✅ Secure connection via Unix sockets
+- ✅ HTTPS enabled by default
+
+**Database:**
+- Production: Google Cloud SQL PostgreSQL
+- Development: PostgreSQL (localhost)

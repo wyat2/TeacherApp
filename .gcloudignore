@@ -1,0 +1,28 @@
+# This file specifies files that are *not* uploaded to Google Cloud
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+.dockerignore
+.DS_Store
+.setup-complete
+*.db
+*.db-shm
+*.db-wal
+bin/
+obj/
+node_modules/
+.vscode/
+.vs/
+*.user
+*.suo
+build-macos/
+Installers/
+TeacherApp-*.dmg
+README.md
+SECURITY_COMPLIANCE.md
+DATABASE_SCHEMA.md
+cloudsql-setup.md
+deploy-cloud-run.sh
+deploy-cloud-run.ps1

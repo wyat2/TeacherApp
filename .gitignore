@@ -64,3 +64,6 @@ artifacts/
 
 # Setup completion marker
 .setup-complete
+
+# Cloud credentials (sensitive)
+.cloud-credentials
