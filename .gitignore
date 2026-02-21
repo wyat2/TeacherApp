@@ -67,3 +67,6 @@ artifacts/
 
 # Cloud credentials (sensitive)
 .cloud-credentials
+
+# Development configuration with sensitive data
+appsettings.Development.json
