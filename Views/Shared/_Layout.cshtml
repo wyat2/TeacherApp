@@ -12,7 +12,9 @@
 </head>
 <body>
     @{
-        var directorsPageInfo = DbContext.DirectorsPageInfos.FirstOrDefault();
+        var directorsPageInfo = DbContext.DirectorsPageInfos
+            .OrderBy(d => d.Id)
+            .FirstOrDefault();
         var schoolName = directorsPageInfo?.SchoolName ?? "TRIO Program";
         
         // Get the current batch year from the database (marked with IsCurrent flag)

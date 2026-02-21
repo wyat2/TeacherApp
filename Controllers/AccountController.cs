@@ -17,6 +17,7 @@ namespace TeacherApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
         public AccountController(
             UserManager<ApplicationUser> userManager, 
@@ -24,7 +25,8 @@ namespace TeacherApp.Controllers
             IAuditLogService auditLog,
             ApplicationDbContext context,
             IWebHostEnvironment env,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IEmailService emailService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -32,6 +34,7 @@ namespace TeacherApp.Controllers
             _context = context;
             _env = env;
             _configuration = configuration;
+            _emailService = emailService;
         }
 
         [HttpGet]
@@ -90,6 +93,108 @@ namespace TeacherApp.Controllers
             }
             
             return View(model);
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Always return success to prevent email enumeration
+            // Find user by email
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            
+            if (user != null)
+            {
+                // Generate temporary password
+                var tempPassword = GenerateTemporaryPassword();
+                
+                // Reset password
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, tempPassword);
+                
+                if (result.Succeeded)
+                {
+                    // Log the password reset attempt
+                    await _auditLog.LogAsync(
+                        action: "Password Reset",
+                        entityType: "User",
+                        entityId: null,
+                        details: $"Temporary password generated for {user.Email}"
+                    );
+
+                    // Send email with temporary password
+                    try
+                    {
+                        var emailBody = $@"
+                            <html>
+                            <body style='font-family: Arial, sans-serif;'>
+                                <h2>Password Reset Request</h2>
+                                <p>Hello,</p>
+                                <p>You have requested to reset your password. Your temporary password is:</p>
+                                <h3 style='background-color: #f0f0f0; padding: 10px; display: inline-block;'>{tempPassword}</h3>
+                                <p>Please log in with this temporary password and change it immediately.</p>
+                                <p><strong>Important:</strong> This password is temporary and should be changed as soon as possible for security reasons.</p>
+                                <p>If you did not request this password reset, please contact support immediately.</p>
+                                <br/>
+                                <p>Best regards,<br/>TeacherApp Support Team</p>
+                            </body>
+                            </html>
+                        ";
+
+                        await _emailService.SendEmailAsync(
+                            model.Email,
+                            "Password Reset - Temporary Password",
+                            emailBody
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log the error but don't reveal it to the user
+                        Console.WriteLine($"Failed to send email: {ex.Message}");
+                    }
+                }
+            }
+
+            // Always redirect to confirmation page (security best practice)
+            return RedirectToAction(nameof(ForgotPasswordConfirmation));
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+        private string GenerateTemporaryPassword()
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%";
+            var random = new Random();
+            var password = new char[12];
+            
+            // Ensure at least one uppercase, lowercase, digit, and special char
+            password[0] = chars[random.Next(0, 23)]; // Uppercase
+            password[1] = chars[random.Next(23, 46)]; // Lowercase
+            password[2] = chars[random.Next(46, 55)]; // Digit
+            password[3] = chars[random.Next(55, chars.Length)]; // Special
+            
+            // Fill the rest randomly
+            for (int i = 4; i < 12; i++)
+            {
+                password[i] = chars[random.Next(chars.Length)];
+            }
+            
+            // Shuffle the password
+            return new string(password.OrderBy(x => random.Next()).ToArray());
         }
 
         [HttpPost]
