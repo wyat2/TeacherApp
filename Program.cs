@@ -3,8 +3,32 @@ using Microsoft.EntityFrameworkCore;
 using TeacherApp.Data;
 using TeacherApp.Models;
 using TeacherApp.Services;
+using Google.Cloud.SecretManager.V1;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load secrets from Google Secret Manager if in Production
+if (builder.Environment.IsProduction())
+{
+    var projectId = Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "fab-penguin";
+    var client = SecretManagerServiceClient.Create();
+    
+    try
+    {
+        var emailPasswordSecret = client.AccessSecretVersion($"projects/{projectId}/secrets/email-password/versions/latest");
+        var emailUsernameSecret = client.AccessSecretVersion($"projects/{projectId}/secrets/email-username/versions/latest");
+        var emailSmtpServerSecret = client.AccessSecretVersion($"projects/{projectId}/secrets/email-smtp-server/versions/latest");
+        
+        builder.Configuration["EmailSettings:Password"] = emailPasswordSecret.Payload.Data.ToStringUtf8();
+        builder.Configuration["EmailSettings:Username"] = emailUsernameSecret.Payload.Data.ToStringUtf8();
+        builder.Configuration["EmailSettings:SmtpServer"] = emailSmtpServerSecret.Payload.Data.ToStringUtf8();
+        builder.Configuration["EmailSettings:SenderEmail"] = emailUsernameSecret.Payload.Data.ToStringUtf8();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Warning: Could not load secrets from Secret Manager: {ex.Message}");
+    }
+}
 
 // Check for command-line arguments
 if (args.Contains("--populate-test-data"))

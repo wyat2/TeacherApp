@@ -1,1 +1,2 @@
 PR,BatchAY,CaseNumber,LastNM,FirstNM,MI,DOB,GenderCD,Hispanic,AmIndAK,Asian,BlackAfrAm,White,HIPacIslndr,EligibilityCD,DisabledCD,NeedCD,FirstEnrollDT,FirstServiceEnterGradeLV,FirstServEnrollCD,StuCohortYR,PartCD,EnrollCD,AcamStandCD,CumGPA,BegCurrentGradeLV,CurrentGradeLV,LastSerDT,ReaforWith,Transfers,DegreeCD,DOUD,DegCertFieldErnd,CurPerstStatus,FinAidRecvd,SSSGrantAid,PartNameChange
+PR123456789,2023,10001234,DOE,JANE,A,03/14/2004,2,2,2,1,2,1,2,1,2,7,08/25/2022,09/01/2022,1,1,25,2,1,1,3.250,1,2,05/10/2024,8,8,4,05/23/2024,11,1,04500,07500,

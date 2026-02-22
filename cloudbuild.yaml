@@ -24,11 +24,27 @@ steps:
       - '--add-cloudsql-instances=${_CLOUDSQL_INSTANCE}'
       - '--set-env-vars=ConnectionStrings__PostgreSqlConnection=${_DB_CONNECTION_STRING}'
       - '--set-env-vars=ASPNETCORE_ENVIRONMENT=Production'
+      - '--set-env-vars=GOOGLE_CLOUD_PROJECT=fab-penguin'
+      - '--set-env-vars=EmailSettings__SmtpPort=587'
+      - '--set-env-vars=EmailSettings__SenderName=TeacherApp Support'
       - '--memory=512Mi'
       - '--cpu=1'
       - '--max-instances=10'
       - '--min-instances=0'
       - '--timeout=300'
+    secretEnv:
+      - EMAIL_PASSWORD
+      - EMAIL_USERNAME  
+      - EMAIL_SMTP_SERVER
+  
+  availableSecrets:
+    secretManager:
+      - versionName: projects/$PROJECT_ID/secrets/email-password/versions/latest
+        env: EMAIL_PASSWORD
+      - versionName: projects/$PROJECT_ID/secrets/email-username/versions/latest
+        env: EMAIL_USERNAME
+      - versionName: projects/$PROJECT_ID/secrets/email-smtp-server/versions/latest
+        env: EMAIL_SMTP_SERVER
 
 images:
   - 'gcr.io/$PROJECT_ID/teacherapp:$COMMIT_SHA'
