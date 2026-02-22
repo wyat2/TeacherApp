@@ -32,19 +32,6 @@ steps:
       - '--max-instances=10'
       - '--min-instances=0'
       - '--timeout=300'
-    secretEnv:
-      - EMAIL_PASSWORD
-      - EMAIL_USERNAME  
-      - EMAIL_SMTP_SERVER
-  
-  availableSecrets:
-    secretManager:
-      - versionName: projects/$PROJECT_ID/secrets/email-password/versions/latest
-        env: EMAIL_PASSWORD
-      - versionName: projects/$PROJECT_ID/secrets/email-username/versions/latest
-        env: EMAIL_USERNAME
-      - versionName: projects/$PROJECT_ID/secrets/email-smtp-server/versions/latest
-        env: EMAIL_SMTP_SERVER
 
 images:
   - 'gcr.io/$PROJECT_ID/teacherapp:$COMMIT_SHA'
