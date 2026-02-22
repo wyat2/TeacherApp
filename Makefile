@@ -1,4 +1,4 @@
-.PHONY: help build-local run-local test docker-build docker-run docker-stop docker-logs deploy logs status clean
+.PHONY: help build-local run-local test docker-build docker-run docker-stop docker-logs deploy logs status clean check-deploy-env
 
 # Variables
 PROJECT_ID = fab-penguin
@@ -9,6 +9,15 @@ REGISTRY = us-central1-docker.pkg.dev
 REPOSITORY = teacherapp-repo
 IMAGE_TAG = latest
 FULL_IMAGE_NAME = $(REGISTRY)/$(PROJECT_ID)/$(REPOSITORY)/$(IMAGE_NAME):$(IMAGE_TAG)
+
+# Production deployment settings (override at runtime)
+DB_CONNECTION_STRING ?=
+EMAIL_SMTP_SERVER ?= smtp.gmail.com
+EMAIL_SMTP_PORT ?= 587
+EMAIL_SENDER_EMAIL ?=
+EMAIL_SENDER_NAME ?= TeacherApp Support
+EMAIL_USERNAME ?=
+EMAIL_PASSWORD_SECRET ?= teacherapp-email-password
 
 help:
 	@echo "TeacherApp Deployment Commands"
@@ -27,7 +36,7 @@ help:
 	@echo ""
 	@echo "Cloud Run Deployment:"
 	@echo "  make setup-gcloud   - Setup Google Cloud project and services"
-	@echo "  make deploy         - Build and deploy to Cloud Run"
+	@echo "  make deploy         - Build and deploy to Cloud Run (requires DB_CONNECTION_STRING, EMAIL_SENDER_EMAIL, EMAIL_USERNAME)"
 	@echo "  make logs           - View Cloud Run logs"
 	@echo "  make status         - Check Cloud Run service status"
 	@echo "  make url            - Get the service URL"
@@ -37,6 +46,9 @@ help:
 	@echo "  Region: $(REGION)"
 	@echo "  Service: $(SERVICE_NAME)"
 	@echo "  Image: $(FULL_IMAGE_NAME)"
+	@echo ""
+	@echo "Deploy example:"
+	@echo "  make deploy DB_CONNECTION_STRING='Host=/cloudsql/PROJECT:REGION:INSTANCE;Database=teacherapp;Username=teacherapp-user;Password=YOUR_PASSWORD' EMAIL_SENDER_EMAIL='no-reply@yourdomain.com' EMAIL_USERNAME='smtp-user@yourdomain.com' EMAIL_PASSWORD_SECRET='teacherapp-email-password'"
 
 # Local development targets
 build-local:
@@ -96,7 +108,12 @@ setup-gcloud:
 	@echo "Setup complete!"
 
 # Cloud Run deployment
-deploy:
+check-deploy-env:
+	@if [ -z "$(DB_CONNECTION_STRING)" ]; then echo "Error: DB_CONNECTION_STRING is required"; exit 1; fi
+	@if [ -z "$(EMAIL_SENDER_EMAIL)" ]; then echo "Error: EMAIL_SENDER_EMAIL is required"; exit 1; fi
+	@if [ -z "$(EMAIL_USERNAME)" ]; then echo "Error: EMAIL_USERNAME is required"; exit 1; fi
+
+deploy: check-deploy-env
 	@echo "Building and deploying to Cloud Run..."
 	@echo "Step 1: Building Docker image..."
 	docker build -t $(FULL_IMAGE_NAME) .
@@ -115,7 +132,8 @@ deploy:
 		--cpu=1 \
 		--min-instances=0 \
 		--max-instances=10 \
-		--set-env-vars="ASPNETCORE_ENVIRONMENT=Production"
+		--set-env-vars="ASPNETCORE_ENVIRONMENT=Production,ConnectionStrings__PostgreSqlConnection=$(DB_CONNECTION_STRING),EmailSettings__SmtpServer=$(EMAIL_SMTP_SERVER),EmailSettings__SmtpPort=$(EMAIL_SMTP_PORT),EmailSettings__SenderEmail=$(EMAIL_SENDER_EMAIL),EmailSettings__SenderName=$(EMAIL_SENDER_NAME),EmailSettings__Username=$(EMAIL_USERNAME)" \
+		--set-secrets="EmailSettings__Password=$(EMAIL_PASSWORD_SECRET):latest"
 	@echo ""
 	@echo "Deployment complete!"
 	@make url
