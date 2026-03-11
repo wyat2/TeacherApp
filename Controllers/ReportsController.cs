@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Data;
 using Npgsql;
 using TeacherApp.Data;
@@ -378,7 +379,7 @@ namespace TeacherApp.Controllers
             var dangerousKeywords = new[] { "DROP", "DELETE", "INSERT", "UPDATE", "ALTER", "CREATE", "TRUNCATE", "EXEC", "EXECUTE" };
             foreach (var keyword in dangerousKeywords)
             {
-                if (trimmedQuery.Contains(keyword))
+                if (Regex.IsMatch(trimmedQuery, $@"\b{keyword}\b", RegexOptions.CultureInvariant))
                 {
                     ViewBag.QueryError = $"Query contains forbidden keyword: {keyword}";
                     ViewBag.SqlQuery = sqlQuery;
@@ -392,8 +393,14 @@ namespace TeacherApp.Controllers
                 using var connection = new NpgsqlConnection(connectionString);
                 await connection.OpenAsync();
 
+                // Auto-quote PostgreSQL identifiers based on actual schema names
+                // so users can write queries like SELECT * FROM Students.
+                var identifierMap = await GetIdentifierMapAsync(connection);
+                var normalizedQuery = NormalizePostgreSqlIdentifiers(sqlQuery, identifierMap);
+                ViewBag.ExecutedSqlQuery = normalizedQuery;
+
                 using var command = connection.CreateCommand();
-                command.CommandText = sqlQuery;
+                command.CommandText = normalizedQuery;
                 command.CommandTimeout = 30; // 30 seconds timeout
 
                 using var reader = await command.ExecuteReaderAsync();
@@ -445,6 +452,169 @@ namespace TeacherApp.Controllers
             }
 
             return View("Index");
+        }
+
+        private async Task<Dictionary<string, string>> GetIdentifierMapAsync(NpgsqlConnection connection)
+        {
+            var identifiers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            const string identifierSql = @"
+SELECT table_name AS identifier
+FROM information_schema.tables
+WHERE table_schema = 'public'
+UNION
+SELECT column_name AS identifier
+FROM information_schema.columns
+WHERE table_schema = 'public';";
+
+            using var command = connection.CreateCommand();
+            command.CommandText = identifierSql;
+
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
+            {
+                var identifier = reader.GetString(0);
+                if (!identifiers.ContainsKey(identifier))
+                {
+                    identifiers[identifier] = identifier;
+                }
+            }
+
+            return identifiers;
+        }
+
+        private static string NormalizePostgreSqlIdentifiers(string sqlQuery, Dictionary<string, string> identifierMap)
+        {
+            if (string.IsNullOrWhiteSpace(sqlQuery) || identifierMap.Count == 0)
+            {
+                return sqlQuery;
+            }
+
+            var output = new StringBuilder(sqlQuery.Length + 32);
+            var i = 0;
+
+            while (i < sqlQuery.Length)
+            {
+                // Preserve single-quoted string literals
+                if (sqlQuery[i] == '\'')
+                {
+                    output.Append(sqlQuery[i++]);
+                    while (i < sqlQuery.Length)
+                    {
+                        output.Append(sqlQuery[i]);
+                        if (sqlQuery[i] == '\'' && (i + 1 >= sqlQuery.Length || sqlQuery[i + 1] != '\''))
+                        {
+                            i++;
+                            break;
+                        }
+
+                        if (sqlQuery[i] == '\'' && i + 1 < sqlQuery.Length && sqlQuery[i + 1] == '\'')
+                        {
+                            output.Append(sqlQuery[i + 1]);
+                            i += 2;
+                            continue;
+                        }
+
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                // Preserve already-quoted identifiers
+                if (sqlQuery[i] == '"')
+                {
+                    output.Append(sqlQuery[i++]);
+                    while (i < sqlQuery.Length)
+                    {
+                        output.Append(sqlQuery[i]);
+                        if (sqlQuery[i] == '"' && (i + 1 >= sqlQuery.Length || sqlQuery[i + 1] != '"'))
+                        {
+                            i++;
+                            break;
+                        }
+
+                        if (sqlQuery[i] == '"' && i + 1 < sqlQuery.Length && sqlQuery[i + 1] == '"')
+                        {
+                            output.Append(sqlQuery[i + 1]);
+                            i += 2;
+                            continue;
+                        }
+
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                // Preserve line comments
+                if (i + 1 < sqlQuery.Length && sqlQuery[i] == '-' && sqlQuery[i + 1] == '-')
+                {
+                    output.Append(sqlQuery[i++]);
+                    output.Append(sqlQuery[i++]);
+                    while (i < sqlQuery.Length)
+                    {
+                        output.Append(sqlQuery[i]);
+                        if (sqlQuery[i++] == '\n')
+                        {
+                            break;
+                        }
+                    }
+
+                    continue;
+                }
+
+                // Preserve block comments
+                if (i + 1 < sqlQuery.Length && sqlQuery[i] == '/' && sqlQuery[i + 1] == '*')
+                {
+                    output.Append(sqlQuery[i++]);
+                    output.Append(sqlQuery[i++]);
+                    while (i + 1 < sqlQuery.Length)
+                    {
+                        output.Append(sqlQuery[i]);
+                        if (sqlQuery[i] == '*' && sqlQuery[i + 1] == '/')
+                        {
+                            output.Append(sqlQuery[i + 1]);
+                            i += 2;
+                            break;
+                        }
+
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                // Rewrite identifiers outside of literals/comments.
+                if (char.IsLetter(sqlQuery[i]) || sqlQuery[i] == '_')
+                {
+                    var start = i;
+                    i++;
+                    while (i < sqlQuery.Length && (char.IsLetterOrDigit(sqlQuery[i]) || sqlQuery[i] == '_' || sqlQuery[i] == '$'))
+                    {
+                        i++;
+                    }
+
+                    var token = sqlQuery.Substring(start, i - start);
+                    if (identifierMap.TryGetValue(token, out var canonicalIdentifier))
+                    {
+                        output.Append('"');
+                        output.Append(canonicalIdentifier.Replace("\"", "\"\""));
+                        output.Append('"');
+                    }
+                    else
+                    {
+                        output.Append(token);
+                    }
+
+                    continue;
+                }
+
+                output.Append(sqlQuery[i]);
+                i++;
+            }
+
+            return output.ToString();
         }
     }
 }

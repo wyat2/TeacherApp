@@ -182,6 +182,13 @@
                     {
                         <div class="mt-4">
                             <h5>Query Results</h5>
+                            @if (ViewBag.ExecutedSqlQuery != null)
+                            {
+                                <div class="alert alert-secondary py-2">
+                                    <strong>Executed SQL:</strong>
+                                    <code>@ViewBag.ExecutedSqlQuery</code>
+                                </div>
+                            }
                             <div class="table-responsive">
                                 @Html.Raw(ViewBag.QueryResults)
                             </div>

@@ -1,0 +1,12 @@
+TeacherApp Local Run Steps
+
+1. Start local PostgreSQL.
+2. Make sure the teacherapp database and user exist, and that the password matches the development connection string.
+3. In PowerShell, run:
+   $env:ASPNETCORE_ENVIRONMENT='Development'; dotnet run
+4. Open the app in your browser:
+   http://localhost:5000
+
+Notes:
+- If PostgreSQL is not running or credentials do not match, the app will fail when it tries to connect/migrate.
+- Keep the terminal running while using the app locally.
