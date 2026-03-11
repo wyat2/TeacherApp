@@ -1,0 +1,24 @@
+Use the deploy-cloud-run.ps1 file
+These are the steps it preforms
+ Google Cloud Build, which does the Docker build and push in the cloud on Google's
+  servers. Then cloudbuild.yaml handles the gcloud run deploy step automatically.
+
+  In short:
+
+  ┌────────────────────────┬────────────────────────────────┬───────────────────────┐
+  │ Step                   │ Manual                         │ deploy-cloud-run.ps1  │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Set project            │ ✅                             │ ✅                    │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Get commit SHA         │ ✅                             │ ✅                    │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Build Docker image     │ Locally (needs Docker Desktop) │ ☁️ Google Cloud Build │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Push image to registry │ Locally                        │ ☁️ Google Cloud Build │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Deploy to Cloud Run    │ Manually                       │ ☁️ Google Cloud Build │
+  ├────────────────────────┼────────────────────────────────┼───────────────────────┤
+  │ Print service URL      │ ✅                             │ ✅                    │
+  └────────────────────────┴────────────────────────────────┴───────────────────────┘
+
+  The script is simpler and doesn't require Docker Desktop installed on your machine.
