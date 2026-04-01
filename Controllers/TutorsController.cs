@@ -70,6 +70,12 @@ namespace TeacherApp.Controllers
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
             if (!UserHasDeleteTutorsPermission()) return Forbid();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser?.Id == id)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Index));
+            }
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
             return View(user);
@@ -80,9 +86,21 @@ namespace TeacherApp.Controllers
         {
             if (string.IsNullOrEmpty(id)) return NotFound();
             if (!UserHasDeleteTutorsPermission()) return Forbid();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser?.Id == id)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your own account.";
+                return RedirectToAction(nameof(Index));
+            }
             var user = await _userManager.FindByIdAsync(id);
             if (user != null)
             {
+                // Null out FK references before deleting to avoid constraint violation
+                var students = _context.Students.Where(s => s.CreatedByUserId == id);
+                foreach (var student in students)
+                    student.CreatedByUserId = null;
+                await _context.SaveChangesAsync();
+
                 await _userManager.DeleteAsync(user);
             }
             return RedirectToAction(nameof(Index));

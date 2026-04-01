@@ -1,15 +1,28 @@
 @model IEnumerable<TeacherApp.Models.ApplicationUser>
 @{
     ViewData["Title"] = "Directors";
+    var errorMessage = TempData["ErrorMessage"] as string;
 }
 
 <h2>Directors</h2>
 
-@if (TempData["ErrorMessage"] != null)
+@if (!string.IsNullOrEmpty(errorMessage))
 {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="modal fade" id="selfDeleteModal" tabindex="-1" aria-labelledby="selfDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="selfDeleteModalLabel">Action Not Allowed</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    @errorMessage
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -150,7 +163,7 @@
                             }
                             @if (ViewBag.CanDelete == true)
                             {
-                                <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1" onsubmit="return confirm('Are you sure you want to delete this director?');">
+                                <form asp-action="Delete" asp-route-id="@u.Id" method="post" class="d-inline ms-1">
                                     @Html.AntiForgeryToken()
                                     <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                 </form>
@@ -223,6 +236,21 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            var anchor = '@Context.Request.Query["anchor"]';
+            if (anchor === 'director') {
+                var directorTab = document.getElementById('director-tab');
+                if (directorTab) {
+                    var tab = new bootstrap.Tab(directorTab);
+                    tab.show();
+                }
+            }
+
+            var modalElement = document.getElementById('selfDeleteModal');
+            if (modalElement) {
+                var modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+
             // If creating a new batch year, ensure the form validates the batch year field
             var isNewBatchYear = @(string.IsNullOrEmpty(selectedBatchYear) ? "true" : "false");
             if (isNewBatchYear) {

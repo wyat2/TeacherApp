@@ -201,31 +201,33 @@ namespace TeacherApp.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
-            
-            // Clear the database
+
+            // Demo mode: reset database on logout
             try
             {
                 var connectionString = _configuration.GetConnectionString("PostgreSqlConnection");
                 using var connection = new NpgsqlConnection(connectionString);
                 await connection.OpenAsync();
-                
+
                 using var command = connection.CreateCommand();
                 command.CommandText = "DROP SCHEMA public CASCADE; CREATE SCHEMA public;";
                 await command.ExecuteNonQueryAsync();
+
+                // Recreate all tables immediately so subsequent requests don't hit missing schema objects.
+                await _context.Database.MigrateAsync();
             }
             catch (Exception ex)
             {
-                // Log error but continue with logout
-                Console.WriteLine($"Error clearing database: {ex.Message}");
+                Console.WriteLine($"Error resetting database: {ex.Message}");
             }
-            
-            // Remove setup flag
+
+            // Remove setup flag so setup wizard runs again
             var setupFlagPath = Path.Combine(_env.ContentRootPath, ".setup-complete");
             if (System.IO.File.Exists(setupFlagPath))
             {
                 System.IO.File.Delete(setupFlagPath);
             }
-            
+
             return RedirectToAction("Index", "Home");
         }
     }
