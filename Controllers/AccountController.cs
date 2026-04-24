@@ -65,8 +65,20 @@ namespace TeacherApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
+        public async Task<IActionResult> Login(string? returnUrl = null)
         {
+            if (_configuration.GetValue<bool>("DemoMode:Enabled"))
+            {
+                var user = await _userManager.FindByEmailAsync("dev@example.com");
+                if (user != null)
+                {
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                        return Redirect(returnUrl);
+                    return RedirectToAction("Index", "Home");
+                }
+            }
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -213,6 +225,9 @@ namespace TeacherApp.Controllers
                 command.CommandText = "DROP SCHEMA public CASCADE; CREATE SCHEMA public;";
                 await command.ExecuteNonQueryAsync();
 
+                // Clear stale pooled connections so EF gets a fresh connection for migrations.
+                NpgsqlConnection.ClearAllPools();
+
                 // Recreate all tables immediately so subsequent requests don't hit missing schema objects.
                 await _context.Database.MigrateAsync();
             }
@@ -229,6 +244,41 @@ namespace TeacherApp.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> AutoReset()
+        {
+            if (!_configuration.GetValue<bool>("DemoMode:Enabled"))
+                return NotFound();
+
+            await _signInManager.SignOutAsync();
+
+            try
+            {
+                var connectionString = _configuration.GetConnectionString("PostgreSqlConnection");
+                using var connection = new NpgsqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                using var command = connection.CreateCommand();
+                command.CommandText = "DROP SCHEMA public CASCADE; CREATE SCHEMA public;";
+                await command.ExecuteNonQueryAsync();
+
+                // Clear stale pooled connections so EF gets a fresh connection for migrations.
+                NpgsqlConnection.ClearAllPools();
+
+                await _context.Database.MigrateAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error resetting database on auto-reset: {ex.Message}");
+            }
+
+            var setupFlagPath = Path.Combine(_env.ContentRootPath, ".setup-complete");
+            if (System.IO.File.Exists(setupFlagPath))
+                System.IO.File.Delete(setupFlagPath);
+
+            return Redirect("https://fabpenguin.com");
         }
     }
 }

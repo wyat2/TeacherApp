@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using TeacherApp.Models;
 using TeacherApp.Services;
 using TeacherApp.ViewModels;
 
@@ -8,19 +10,39 @@ namespace TeacherApp.Controllers
     {
         private readonly ISetupWizardService _setupWizard;
         private readonly ILogger<SetupController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        public SetupController(ISetupWizardService setupWizard, ILogger<SetupController> logger)
+        private const string DevEmail = "dev@example.com";
+        private const string DevPassword = "DevPassword1!";
+
+        public SetupController(
+            ISetupWizardService setupWizard,
+            ILogger<SetupController> logger,
+            IConfiguration configuration,
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
         {
             _setupWizard = setupWizard;
             _logger = logger;
+            _configuration = configuration;
+            _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            // Check if setup is already complete
             if (!await _setupWizard.IsFirstRunAsync())
+                return RedirectToAction("Index", "Home");
+
+            if (_configuration.GetValue<bool>("DemoMode:Enabled"))
             {
+                await _setupWizard.CompleteSetupAsync("Dev", "Director", DevEmail, DevPassword, DateTime.UtcNow.Year.ToString(), createSampleData: true);
+                var user = await _userManager.FindByEmailAsync(DevEmail);
+                await _signInManager.SignInAsync(user!, isPersistent: false);
+                _logger.LogInformation("DemoMode: completed setup and signed in as {Email}", DevEmail);
                 return RedirectToAction("Index", "Home");
             }
 
