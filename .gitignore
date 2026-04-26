@@ -71,3 +71,4 @@ artifacts/
 # Development configuration with sensitive data
 appsettings.Development.json
 Deploy.txt
+notes.md
