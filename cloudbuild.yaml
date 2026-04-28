@@ -27,6 +27,7 @@ steps:
       - '--set-env-vars=GOOGLE_CLOUD_PROJECT=fab-penguin'
       - '--set-env-vars=EmailSettings__SmtpPort=587'
       - '--set-env-vars=EmailSettings__SenderName=TeacherApp Support'
+      - '--set-env-vars=DemoMode__Enabled=true'
       - '--memory=512Mi'
       - '--cpu=1'
       - '--max-instances=10'
